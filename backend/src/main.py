@@ -12,7 +12,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# Store active connections
 active_connections: List[WebSocket] = []
 
 @app.websocket("/ws")
