@@ -37,7 +37,6 @@ const Register = () => {
       return;
     }
     try {
-      // Send registration data to the backend using fetch
       const response = await fetch("http://localhost:8000/auth/user/signup", {
         method: "POST",
         headers: {
@@ -46,21 +45,19 @@ const Register = () => {
         body: JSON.stringify({ username, email, password, confirm_password }),
       });
 
-      // Parse the JSON response
       const data = await response.json();
 
-      // Handle backend errors
-      if (!response.ok) {
-        throw new Error(data.detail || "Registration failed. Please try again.");
+      if (!response.status === 201) {
+        throw new Error(
+          data.detail || "Registration failed. Please try again."
+        );
       }
 
-      // If registration is successful, navigate to the login page
-      console.log("User Registered:", data);
+      // console.log("User Registered:", data);
       navigate("/login");
     } catch (error) {
-      // Handle errors
       setError(error.message || "Registration failed. Please try again.");
-      console.log(error.message)
+      console.log(error.message);
     }
     // console.log("User Registered:", formData);
     // navigate("/login");
@@ -102,9 +99,12 @@ const Register = () => {
         value={formData.confirm_password}
         onChange={handleChange}
       />
-      <button className="btn" onClick={handleRegister}>Register</button>
+      <button className="btn" onClick={handleRegister}>
+        Register
+      </button>
       <p className="login-link">
-        Already have an account? <span onClick={() => navigate("/login")}>Login here</span>
+        Already have an account?{" "}
+        <span onClick={() => navigate("/login")}>Login here</span>
       </p>
     </div>
   );

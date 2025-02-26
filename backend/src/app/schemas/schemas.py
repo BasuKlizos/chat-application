@@ -8,14 +8,14 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     password: str
-    confirm_password: str
+    confirm_password: Optional[str] = None
     created_at: datetime = datetime.now(timezone.utc)
     updated_at: Optional[datetime] = None
 
 
 class UserCreate(UserBase):
     password: str
-    confirm_password: str
+    confirm_password: Optional[str] = None
 
 
 class GetUserData(BaseModel):
@@ -32,3 +32,6 @@ class UserResponse(BaseModel):
 class LoginRequest(BaseModel):
     username_or_email: Union[EmailStr, str]
     password: str
+
+class LoginResponse(UserResponse):
+    access_token: str

@@ -1,28 +1,36 @@
-import { useState } from "react";
-import UsersList from "../components/UsersList";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import ChatPanel from "../components/ChatPanel";
+import UsersList from "../components/UsersList";
 import UserAuth from "../components/UserAuth";
-import UserProfile from "../components/UserProfile"; // New component for user profile
+import UserProfile from "../components/UserProfile"; 
 import "../styles.css";
 
 const ChatRoom = () => {
-  const [users, setUsers] = useState([
-    { id: 1, name: "Alice", online: true },
-    { id: 2, name: "Bob", online: false },
-    { id: 3, name: "Charlie", online: true },
-  ]);
-
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState({
-    id: 1,
-    name: "Alice",
+    username: "Guest", // Default username
     online: true,
-    email: "alice@example.com", // Add email for profile
-    avatar: "/boy.png", // Add avatar URL
+    avatar: "/boy.png",
   });
 
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // State to control profile visibility
+  // const [users, setUsers] = useState([
+  //   { id: 1, name: "Alice", online: true },
+  //   { id: 2, name: "Bob", online: false },
+  //   { id: 3, name: "Charlie", online: true },
+  // ]);
 
-  // Function to update user profile
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.username) {
+      setCurrentUser((prev) => ({
+        ...prev,
+        username: location.state.username,
+      }));
+    }
+  }, [location.state]);
+
   const updateProfile = (updatedProfile) => {
     setCurrentUser((prev) => ({
       ...prev,
@@ -34,11 +42,14 @@ const ChatRoom = () => {
     <div className="chat-room">
       <div className="sidebar">
         <UserAuth currentUser={currentUser} />
-        <UsersList users={users} />
-        {/* Profile Section in Bottom-Left Corner */}
+        <UsersList currentUser={currentUser} />
         <div className="profile-section" onClick={() => setIsProfileOpen(true)}>
-          <img src={currentUser.avatar} alt="Profile" className="profile-avatar" />
-          <span>{currentUser.name}</span>
+          <img
+            src={currentUser.avatar}
+            alt="Profile"
+            className="profile-avatar"
+          />
+          <span>{currentUser.username}</span>
         </div>
       </div>
       <div className="chat-section">
