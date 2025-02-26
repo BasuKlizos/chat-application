@@ -166,8 +166,9 @@ body {
 
 /* Chat Box */
 .chat-box {
-    height: 600px;
-    width: 560px;
+    height: 80vh; /* 80% of the viewport height */
+    min-height: 300px; /* Minimum height */
+    width: calc(100% - 40px); /* Responsive width, subtracting padding */
     overflow-y: auto;
     padding: 20px;
     background: #E3EAF2;
@@ -512,7 +513,7 @@ body {
 /* Chat Room Layout */
 .chat-room {
     display: flex;
-    height: 100vh;
+    height: 95vh;
     background-color: #f0f4f8;
 }
 
