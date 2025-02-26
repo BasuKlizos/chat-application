@@ -2,6 +2,9 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
+from src.app.routes import websockets
+from src.app.routes import auth
+
 app = FastAPI()
 
 app.add_middleware(
@@ -12,18 +15,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Store active connections
-active_connections: List[WebSocket] = []
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    print("---------------connected")
-    active_connections.append(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            for connection in active_connections:
-                await connection.send_text(data)  # Broadcast message to all clients
-    except:
-        active_connections.remove(websocket)
+app.include_router(websockets.ws_routes)
+app.include_router(auth.auth_routes)

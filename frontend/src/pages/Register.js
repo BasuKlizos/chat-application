@@ -7,7 +7,7 @@ const Register = () => {
     username: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    confirm_password: "",
   });
 
   const [error, setError] = useState("");
@@ -19,10 +19,10 @@ const Register = () => {
     setError(""); // Reset error on input change
   };
 
-  const handleRegister = () => {
-    const { username, email, password, confirmPassword } = formData;
+  const handleRegister = async () => {
+    const { username, email, password, confirm_password } = formData;
 
-    if (!username || !email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirm_password) {
       setError("Please fill in all fields.");
       return;
     }
@@ -32,18 +32,43 @@ const Register = () => {
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (password !== confirm_password) {
       setError("Passwords do not match.");
       return;
     }
+    try {
+      // Send registration data to the backend using fetch
+      const response = await fetch("http://localhost:8000/auth/user/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email, password, confirm_password }),
+      });
 
-    console.log("User Registered:", formData);
-    navigate("/login");
+      // Parse the JSON response
+      const data = await response.json();
+
+      // Handle backend errors
+      if (!response.ok) {
+        throw new Error(data.detail || "Registration failed. Please try again.");
+      }
+
+      // If registration is successful, navigate to the login page
+      console.log("User Registered:", data);
+      navigate("/login");
+    } catch (error) {
+      // Handle errors
+      setError(error.message || "Registration failed. Please try again.");
+      console.log(error.message)
+    }
+    // console.log("User Registered:", formData);
+    // navigate("/login");
   };
 
   return (
     <div className="register-container">
-      <h2>Signup</h2>
+      <h2>Sign Up</h2>
       {error && <p className="error-message">{error}</p>}
       <input
         className="input-box"
@@ -72,9 +97,9 @@ const Register = () => {
       <input
         className="input-box"
         type="password"
-        name="confirmPassword"
+        name="confirm_password"
         placeholder="Confirm Password"
-        value={formData.confirmPassword}
+        value={formData.confirm_password}
         onChange={handleChange}
       />
       <button className="btn" onClick={handleRegister}>Register</button>
