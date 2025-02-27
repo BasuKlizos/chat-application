@@ -19,6 +19,7 @@ const ChatRoom = () => {
   //   { id: 3, name: "Charlie", online: true },
   // ]);
 
+  const [selectedUser, setSelectedUser] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
@@ -42,14 +43,14 @@ const ChatRoom = () => {
     <div className="chat-room">
       <div className="sidebar">
         <UserAuth currentUser={currentUser} />
-        <UsersList currentUser={currentUser} />
+        <UsersList currentUser={currentUser} setSelectedUser={setSelectedUser}/>
         <div className="profile-section" onClick={() => setIsProfileOpen(true)}>
           <img src={currentUser.avatar} alt="Profile" className="profile-avatar" />
           <span>{currentUser.username || "Unknown User"}</span>
         </div>
       </div>
       <div className="chat-section">
-        <ChatPanel currentUser={currentUser} />
+        <ChatPanel currentUser={currentUser} selectedUser={selectedUser}/>
       </div>
 
       {isProfileOpen && (
