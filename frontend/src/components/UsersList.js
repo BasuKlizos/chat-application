@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "../UsersList.module.css";
+import "../styles.css";
 
 const UsersList = ({ currentUser, setSelectedUser }) => {
   const [users, setUsers] = useState([]);
@@ -37,7 +37,7 @@ const UsersList = ({ currentUser, setSelectedUser }) => {
             style={{ cursor: "pointer" }}
           >
             {user.username} {user.username === currentUser.username && "(You)"}
-            {user.is_online ? " 🟢" : " ⚪"}
+            <span className="status-icon">{user.is_online ? "🟢" : "⚪"}</span>
           </li>
         ))}
       </ul>
