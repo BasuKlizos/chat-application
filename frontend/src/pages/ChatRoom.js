@@ -8,10 +8,9 @@ import "../styles.css";
 
 const ChatRoom = () => {
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState({
-    username: "Guest", // Default username
-    online: true,
-    avatar: "/boy.png",
+  const [currentUser, setCurrentUser] = useState(() => {
+    const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+    return storedUser || { username: "", user_id: null, online: false, avatar: "/boy.png" };
   });
 
   // const [users, setUsers] = useState([
@@ -23,19 +22,20 @@ const ChatRoom = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
-    if (location.state?.username) {
-      setCurrentUser((prev) => ({
-        ...prev,
+    if (location.state?.username && location.state?.user_id) {
+      const userData = {
         username: location.state.username,
-      }));
+        user_id: location.state.user_id,
+        online: true,
+        avatar: "/boy.png",
+      };
+      setCurrentUser(userData);
+      localStorage.setItem("currentUser", JSON.stringify(userData));
     }
   }, [location.state]);
 
   const updateProfile = (updatedProfile) => {
-    setCurrentUser((prev) => ({
-      ...prev,
-      ...updatedProfile,
-    }));
+    setCurrentUser((prev) => ({ ...prev, ...updatedProfile }));
   };
 
   return (
@@ -44,27 +44,18 @@ const ChatRoom = () => {
         <UserAuth currentUser={currentUser} />
         <UsersList currentUser={currentUser} />
         <div className="profile-section" onClick={() => setIsProfileOpen(true)}>
-          <img
-            src={currentUser.avatar}
-            alt="Profile"
-            className="profile-avatar"
-          />
-          <span>{currentUser.username}</span>
+          <img src={currentUser.avatar} alt="Profile" className="profile-avatar" />
+          <span>{currentUser.username || "Unknown User"}</span>
         </div>
       </div>
       <div className="chat-section">
         <ChatPanel currentUser={currentUser} />
       </div>
 
-      {/* Profile Overlay */}
       {isProfileOpen && (
         <div className="profile-overlay">
           <div className="profile-modal">
-            <UserProfile
-              currentUser={currentUser}
-              updateProfile={updateProfile}
-              onClose={() => setIsProfileOpen(false)}
-            />
+            <UserProfile currentUser={currentUser} updateProfile={updateProfile} onClose={() => setIsProfileOpen(false)} />
           </div>
         </div>
       )}

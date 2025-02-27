@@ -1,9 +1,12 @@
 from datetime import datetime, timezone, timedelta
 
 from jose import JWTError, jwt
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
 
 from src.config import settings
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 class JWTAuth:
@@ -12,7 +15,7 @@ class JWTAuth:
 
     @classmethod
     def generate_access_token(cls, user_data: dict):
-        expire = datetime.now(timezone.utc) + timedelta(minutes=30)
+        expire = datetime.now(timezone.utc) + timedelta(days=1)
         payload = {
             "sub": str(user_data["_id"]),
             "username": user_data["username"],
@@ -23,7 +26,7 @@ class JWTAuth:
         return jwt.encode(payload, cls.JWT_SECRET_KEY, algorithm=cls.ALGORITHM)
 
     @classmethod
-    def verify_token(cls, token: str):
+    def verify_token(cls, token: str = Depends(oauth2_scheme)):
         try:
             payload = jwt.decode(token, cls.JWT_SECRET_KEY, algorithms=[cls.ALGORITHM])
             return payload
@@ -34,15 +37,18 @@ class JWTAuth:
             print(f"Unexpected error encountered: {e}")
             return None
 
-    @classmethod
-    def decode_token(cls, token: str):
-        try:
-            payload = jwt.decode(token, cls.JWT_SECRET_KEY, algorithms=[cls.ALGORITHM])
-            return payload
-        except JWTError:
-            raise HTTPException(status_code=401, detail="Token is invalid or expired.")
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"An error occurred while decoding the token: {e}",
-            )
+    # @classmethod
+    # def get_current_user(cls, token: str = Depends(oauth2_scheme)):
+    #     try:
+    #         payload = jwt.decode(token, cls.JWT_SECRET_KEY, algorithms=[cls.ALGORITHM])
+    #         username = payload.get("username")
+    #         if not username:
+    #             raise HTTPException(status_code=401, detail="Username not found")
+    #         return username
+    #     except JWTError:
+    #         raise HTTPException(status_code=401, detail="Token is invalid or expired.")
+    #     except Exception as e:
+    #         raise HTTPException(
+    #             status_code=500,
+    #             detail=f"An error occurred while decoding the token: {e}",
+    #         )

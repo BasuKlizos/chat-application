@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from bson.objectid import ObjectId
 
 from src.app.schemas.schemas import (
     UserCreate,
@@ -77,6 +78,10 @@ async def login(user_login: LoginRequest):
 
         await UserValidation.verify_user_password(user["password"], user_login.password)
 
+        await user_collections.update_one(
+            {"_id": user["_id"]}, {"$set": {"is_online": True}}
+        )
+
         access_token = JWTAuth.generate_access_token(user)
 
         login_user_response = LoginResponse(
@@ -86,6 +91,7 @@ async def login(user_login: LoginRequest):
                 username=user["username"],
                 email=user["email"],
                 created_at=user["created_at"],
+                is_online=True,
             ),
             access_token=access_token,
         )
@@ -94,3 +100,22 @@ async def login(user_login: LoginRequest):
         return login_user_response_dict
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@auth_routes.post("/logout")
+async def logout_user(token_payload: dict = Depends(JWTAuth.verify_token)):
+    try:
+        user_id = token_payload.get("sub") 
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        result = await user_collections.update_one(
+            {"_id": ObjectId(user_id)}, {"$set": {"is_online": False}}
+        )
+
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {"message": "User logged out successfully", "status": True}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")

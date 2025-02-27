@@ -34,12 +34,16 @@ const Login = () => {
       const data = await response.json();
       // console.log(data, "fron====================")
 
-      if (!response.status === 200) {
+      if (response.status !== 200) {
         throw new Error(data.detail || "Login failed. Please try again.");
       }
 
-      console.log("User Logged In:", data);
-      navigate("/chat", { state: { username: data.data.username } }); // Pass only the username to the chat room
+      // console.log("User Logged In:", data);
+
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("currentUser", JSON.stringify(data.data));
+
+     navigate("/chat", { state: { username: data.data.username, user_id: data.data.id } });
     } catch (error) {
       setError(error.message || "Login failed. Please try again.");
     }

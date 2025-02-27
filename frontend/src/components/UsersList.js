@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react";
+import "../UsersList.module.css"
 
 const UsersList = ({ currentUser }) => {
   const [users, setUsers] = useState([]);
 
-  // Fetch all users from the backend
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch("http://localhost:8000/user/get-users");
+        const token = localStorage.getItem("token"); 
+        const response = await fetch("http://localhost:8000/user/get-users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await response.json();
-        setUsers(data.users);
+        if (data.status) {
+          setUsers(data.users);
+        }
       } catch (error) {
         console.error("Failed to fetch users:", error);
       }
@@ -20,38 +27,16 @@ const UsersList = ({ currentUser }) => {
 
   return (
     <div className="users-list">
-      <h3>Online Users</h3>
+      <h3>Users</h3>
       <ul>
         {users.map((user) => (
-          <li
-            key={user.username}
-            className={user.username === currentUser.username ? "online" : "offline"}
-          >
+          <li key={user.user_id} className={user.is_online ? "online" : "offline"}>
             {user.username} {user.username === currentUser.username && "(You)"}
+            {user.is_online ? " 🟢" : " ⚪"}
           </li>
         ))}
       </ul>
     </div>
   );
 };
-
 export default UsersList;
-
-
-
-// const UsersList = ({ users }) => {
-//     return (
-//       <div className="users-list">
-//         <h3>Online Users</h3>
-//         <ul>
-//           {users.map((user) => (
-//             <li key={user.id} className={user.online ? "online" : "offline"}>
-//               {user.name}
-//             </li>
-//           ))}
-//         </ul>
-//       </div>
-//     );
-//   };
-  
-//   export default UsersList;

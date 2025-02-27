@@ -11,6 +11,7 @@ class UserBase(BaseModel):
     confirm_password: Optional[str] = None
     created_at: datetime = datetime.now(timezone.utc)
     updated_at: Optional[datetime] = None
+    is_online: bool = False
 
 
 class UserCreate(UserBase):
@@ -23,6 +24,7 @@ class GetUserData(BaseModel):
     username: str
     email: str
     created_at: datetime
+    is_online: bool
 
 
 class UserResponse(BaseModel):
