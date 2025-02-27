@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate  } from "react-router-dom";
 import ChatPanel from "../components/ChatPanel";
 import UsersList from "../components/UsersList";
 import UserAuth from "../components/UserAuth";
@@ -8,6 +8,7 @@ import "../styles.css";
 
 const ChatRoom = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = JSON.parse(localStorage.getItem("currentUser"));
     return storedUser || { username: "", user_id: null, online: false, avatar: "/boy.png" };
@@ -34,6 +35,26 @@ const ChatRoom = () => {
       localStorage.setItem("currentUser", JSON.stringify(userData));
     }
   }, [location.state]);
+
+  // useEffect(() => {
+  //   // if (!currentUser.user_id) {
+  //   //   navigate("/");
+  //   // }
+
+  //   const handleBeforeUnload = (event) => {
+  //     if (event.currentTarget.performance.navigation.type !== 1) {
+  //       // Type 1 means a page refresh, so don't clear storage
+  //       localStorage.removeItem("token");
+  //       localStorage.removeItem("currentUser");
+  //     }
+  //   };
+
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
+
+  //   return () => {
+  //     window.removeEventListener("beforeunload", handleBeforeUnload);
+  //   };
+  // }, [currentUser, navigate]);
 
   const updateProfile = (updatedProfile) => {
     setCurrentUser((prev) => ({ ...prev, ...updatedProfile }));

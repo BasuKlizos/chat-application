@@ -57,7 +57,7 @@ const Login = () => {
         className="input-box"
         type="text"
         placeholder="Enter Username or Email"
-        vvalue={usernameOrEmail}
+        value={usernameOrEmail}
         onChange={(e) => setUsernameOrEmail(e.target.value)}
       />
       <input
