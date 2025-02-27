@@ -10,19 +10,22 @@ const ChatPanel = ({ currentUser, selectedUser }) => {
 
   useEffect(() => {
     if (!selectedUser) return;
-    ws.current = new WebSocket("ws://localhost:8000/ws"); // Connect to FastAPI WebSocket
+    ws.current = new WebSocket(`ws://localhost:8000/ws/${currentUser.user_id}`);
 
     ws.current.onmessage = (event) => {
-      const receivedMessage = {
-        id: messages.length + 1,
-        text: event.data,
-        sender: selectedUser.username,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true }),
-      };
-      setMessages((prev) => [...prev, receivedMessage]);
+      const [senderId, text] = event.data.split(":");
+      if (senderId === selectedUser.user_id) {
+        const receivedMessage = {
+          id: messages.length + 1,
+          text: text,
+          sender: selectedUser.username,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true }),
+        };
+        setMessages((prev) => [...prev, receivedMessage]);
+      }
     };
 
-    return () => ws.current.close(); // Cleanup on unmount
+    return () => ws.current?.close();// Cleanup on unmount
   }, [selectedUser, messages.length]);
 
   const sendMessage = () => {
@@ -36,8 +39,8 @@ const ChatPanel = ({ currentUser, selectedUser }) => {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    // ws.current.send(`${currentUser.username}: ${newMessage}`);  // Send message through WebSocket
-    ws.current.send(newMessage);  // Send message through WebSocket
+    // ws.current.send(`${currentUser.username}: ${newMessage}`);  
+    ws.current.send(`${currentUser.user_id}:${selectedUser.user_id}:${newMessage}`);
     setNewMessage("");
   };
 

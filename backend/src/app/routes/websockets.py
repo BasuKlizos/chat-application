@@ -1,20 +1,31 @@
 from fastapi import WebSocket, APIRouter
-from typing import List
+from typing import Dict
+from bson.objectid import ObjectId
+
+from src.database import user_collections
 
 ws_routes = APIRouter()
 
-active_connections: List[WebSocket] = []
+active_connections: Dict[str, WebSocket] = {}
 
 
-@ws_routes.websocket("/ws")
-async def websocket_endpoints(websocket: WebSocket):
+@ws_routes.websocket("/ws/{user_id}")
+async def websocket_endpoints(websocket: WebSocket, user_id: str):
     await websocket.accept()
-    print("------connected------")
-    active_connections.append(websocket)
+    active_connections[user_id] = websocket
+    print(f"User {user_id} connected.")
     try:
         while True:
             data = await websocket.receive_text()
-            for connection in active_connections:
-                await connection.send_text(data)  # Broadcast
+            sender_id, receiver_id, message = data.split(":", 2)
+
+            # Send message only to the intended recipient
+            if receiver_id in active_connections:
+                await active_connections[receiver_id].send_text(f"{sender_id}:{message}")
+            else:
+                await websocket.send_text("User is offline.") 
     except:
-        active_connections.remove(websocket)
+        del active_connections[user_id]
+        print(f"User {user_id} disconnected.")
+
+        await user_collections.update_one({"_id":ObjectId(user_id)},{"$set":{"is_online":False}})
