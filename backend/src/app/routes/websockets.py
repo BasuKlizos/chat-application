@@ -1,4 +1,5 @@
 import json
+import asyncio
 
 from fastapi import WebSocket, APIRouter, Depends
 from typing import Dict
@@ -23,22 +24,43 @@ async def websocket_endpoints(
     active_connections[user_id] = websocket
     print(f"User {user_id} connected.")
 
-    await RedisPubSUb.redis_subscriber(websocket, f"chat:{user_id}")
+    # await RedisPubSUb.redis_subscriber(websocket, f"chat:{user_id}")
+
+    redis_channel = f"chat:{user_id}"
+    subscriber_task = asyncio.create_task(
+        RedisPubSUb.redis_subscriber(websocket, redis_channel, redis)
+    )
+    print(f"[WebSocket] Created subscriber task for channel: {redis_channel}")
 
     try:
         while True:
             data = await websocket.receive_text()
+            print(f"[WebSocket] Received data: {data}")
             sender_id, receiver_id, message = data.split(":", 2)
 
-            # Save the message in db
             await Message.save_messaage(sender_id, receiver_id, message)
+            print(f"[WebSocket] Saved message from {sender_id} to {receiver_id}")
 
             # Publish message
-            redis.publish(
+            await redis.publish(
                 f"chat:{receiver_id}",
                 json.dumps({"sender_id": sender_id, "message": message}),
             )
-    except:
+            print(f"[WebSocket] Published message to channel: chat:{receiver_id}")
+
+            # Directly send message if the receiver is online
+            if receiver_id in active_connections:
+                await active_connections[receiver_id].send_text(
+                    f"{sender_id}:{message}"
+                )
+                print(f"[WebSocket] Directly sent message to {receiver_id}")
+            else:
+                await websocket.send_text("User is offline.")
+                print(f"[WebSocket] Receiver {receiver_id} is offline.")
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        subscriber_task.cancel()
         del active_connections[user_id]
         print(f"User {user_id} disconnected.")
 

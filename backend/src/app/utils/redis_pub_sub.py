@@ -11,11 +11,14 @@ class RedisPubSUb:
     async def redis_subscriber(
         websocket, channel, redis: Redis = Depends(get_redis_client)
     ):
-        """Subscribe to Redis channel and send messages to WebSocket."""
+        print(f"[Subscriber] Attempting to subscribe to channel: {channel}")
         pubsub = redis.pubsub()
-        pubsub.subscribe(channel)
+        await pubsub.subscribe(channel)
+        print(f"[Subscriber] Subscribed to channel: {channel}")
 
-        for message in pubsub.listen():
+        async for message in pubsub.listen():
+            print(f"[Subscriber] Message received: {message}")
             if message["type"] == "message":
                 data = json.loads(message["data"])
+                print(f"[Subscriber] Forwarding data to websocket: {data}")
                 await websocket.send_text(json.dumps(data))

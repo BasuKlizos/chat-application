@@ -33,6 +33,6 @@ class Message:
         )  # assending order
 
         chat_list = await chats_cursor.to_list(length=None)
-        print(f"Fetched Messages: {chat_list}")
+        # print(f"Fetched Messages: {chat_list}")
 
         return Serialization.serialize_list(chat_list)
