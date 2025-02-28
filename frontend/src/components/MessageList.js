@@ -5,7 +5,9 @@ const MessageList = ({ messages, currentUser }) => {
   const chatEndRef = useRef(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   }, [messages]);
 
   return (
@@ -13,7 +15,7 @@ const MessageList = ({ messages, currentUser }) => {
       {messages.length === 0 ? (
         <p className="no-messages">No messages yet...</p>
       ) : (
-        messages.map((msg) => <MessageItem key={msg.id} msg={msg} currentUser={currentUser} />)
+        messages.map((msg, index) => <MessageItem key={msg.id || index} msg={msg} currentUser={currentUser} />)
       )}
       <div ref={chatEndRef}></div> {/* Auto-scroll target */}
     </div>
