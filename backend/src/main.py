@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 from src.app.routes import websockets
-from src.app.routes import auth, users
+from src.app.routes import auth, users, chats
 
 app = FastAPI()
 
@@ -18,3 +18,4 @@ app.add_middleware(
 app.include_router(websockets.ws_routes)
 app.include_router(auth.auth_routes)
 app.include_router(users.user_routes)
+app.include_router(chats.chat_routes)

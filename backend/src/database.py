@@ -6,3 +6,4 @@ MONGO_URI = settings.MONGO_URI
 client = AsyncIOMotorClient(MONGO_URI)
 db = client["chat-application-db"]
 user_collections = db["users"]
+chat_collections = db["chats"]
