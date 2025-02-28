@@ -4,8 +4,9 @@ from typing import List
 
 from src.app.routes import websockets
 from src.app.routes import auth, users, chats
+from src.app.redis.conf_redis import lifespan
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
