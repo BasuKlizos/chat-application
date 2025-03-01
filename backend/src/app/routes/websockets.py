@@ -10,6 +10,7 @@ from src.database import user_collections
 from src.app.models.message_models import Message
 from src.app.utils.redis_pub_sub import RedisPubSUb
 from src.app.utils.redis_dependencies import get_redis_client
+from src.app.utils.celery_tasks import MessageTasks
 
 ws_routes = APIRouter()
 
@@ -38,8 +39,12 @@ async def websocket_endpoints(
             print(f"[WebSocket] Received data: {data}")
             sender_id, receiver_id, message = data.split(":", 2)
 
-            await Message.save_messaage(sender_id, receiver_id, message)
-            print(f"[WebSocket] Saved message from {sender_id} to {receiver_id}")
+            # await Message.save_messaage(sender_id, receiver_id, message)
+            # print(f"[WebSocket] Saved message from {sender_id} to {receiver_id}")
+            MessageTasks.store_messages.delay(sender_id, receiver_id, message)
+            print(
+                f"Dispatched Celery task to store message from {sender_id} to {receiver_id}"
+            )
 
             # Publish message
             await redis.publish(

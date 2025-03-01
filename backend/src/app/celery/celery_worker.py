@@ -1,6 +1,7 @@
 from celery import Celery
 
 from src.config import settings
+# from src.app.utils.celery_tasks import MessageTasks
 
 REDIS_HOST = settings.REDIS_HOST
 REDIS_PORT = settings.REDIS_PORT
@@ -16,4 +17,6 @@ celery_app.conf.update(
     result_expire=3600,  # 3600 seconds -> 1 hrs.
 )
 
-celery_app.autodiscover_tasks(["app.utils.celery_tasks"])
+# Register tasks
+celery_app.autodiscover_tasks(["src.app.utils.celery_tasks"])
+# celery_app.register_task(MessageTasks.store_messages)
