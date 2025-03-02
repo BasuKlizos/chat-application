@@ -12,6 +12,7 @@ from src.app.models.message_models import Message
 from src.app.utils.redis_pub_sub import RedisPubSUb
 from src.app.utils.redis_dependencies import get_redis_client_ws
 from src.app.utils.celery_tasks import MessageTasks
+from src.app.utils.metrics import WS_CONNECTIONS, WS_MESSAGES_RECEIVED, WS_MESSAGES_SENT
 
 ws_routes = APIRouter()
 
@@ -24,6 +25,9 @@ async def websocket_endpoints(
 ):
     await websocket.accept()
     active_connections[user_id] = websocket
+
+    WS_CONNECTIONS.inc()  # Increment WebSocket connection counter
+    
     print(f"User {user_id} connected.")
 
     # await RedisPubSUb.redis_subscriber(websocket, f"chat:{user_id}")
@@ -37,6 +41,7 @@ async def websocket_endpoints(
     try:
         while True:
             data = await websocket.receive_text()
+            WS_MESSAGES_RECEIVED.inc()  # Increment messages received counter
             print(f"[WebSocket] Received data: {data}")
             sender_id, receiver_id, message = data.split(":", 2)
 
@@ -68,6 +73,7 @@ async def websocket_endpoints(
                 await active_connections[receiver_id].send_text(
                     f"{sender_id}:{message}"
                 )
+                WS_MESSAGES_SENT.inc()  # Increment messages sent counter
                 print(f"[WebSocket] Directly sent message to {receiver_id}")
             else:
                 await websocket.send_text("User is offline.")

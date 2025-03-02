@@ -33,6 +33,7 @@ motor==3.7.0
 passlib==1.7.4
 prometheus_client==0.21.1
 prompt_toolkit==3.0.50
+psutil==7.0.0
 pyasn1==0.4.8
 pydantic==2.10.6
 pydantic_core==2.27.2
