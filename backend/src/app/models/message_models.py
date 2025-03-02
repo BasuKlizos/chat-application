@@ -67,5 +67,41 @@ class Message:
             await redis.zadd(conversation_key, {json.dumps(message): ts_float})
 
         await redis.expire(conversation_key, 86400)  # set an expiration (1 days).
-        
+
         return serialized_chat
+
+    @staticmethod
+    async def cache_new_message(
+        user1_id: str, user2_id: str, message: dict, redis: Redis
+    ):
+        sorted_ids = sorted([user1_id, user2_id])
+        conversation_key = f"chat_history:{sorted_ids[0]}:{sorted_ids[1]}"
+
+        message_copy = message.copy()
+
+        #  Timestamp JSON-serializable format (ISO string)
+        ts = message_copy.get("timestamp")
+        if isinstance(ts, datetime):
+            message_copy["timestamp"] = ts.isoformat()
+        elif isinstance(ts, str):
+            try:
+
+                message_copy["timestamp"] = parser.parse(ts).isoformat()
+            except Exception:
+
+                pass
+
+        #  numeric score using the original timestamp value.
+        if isinstance(ts, str):
+            try:
+                ts_float = parser.parse(ts).timestamp()
+            except Exception:
+                ts_float = time.time()
+        elif isinstance(ts, datetime):
+            ts_float = ts.timestamp()
+        else:
+            ts_float = time.time()
+            
+        await redis.zadd(conversation_key, {json.dumps(message_copy): ts_float})
+
+        await redis.expire(conversation_key, 86400)

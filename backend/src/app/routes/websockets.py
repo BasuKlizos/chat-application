@@ -1,5 +1,6 @@
 import json
 import asyncio
+from datetime import datetime, timezone
 
 from fastapi import WebSocket, APIRouter, Depends
 from typing import Dict
@@ -41,10 +42,19 @@ async def websocket_endpoints(
 
             # await Message.save_messaage(sender_id, receiver_id, message)
             # print(f"[WebSocket] Saved message from {sender_id} to {receiver_id}")
+            new_message = {
+                "sender_id": sender_id,
+                "receiver_id": receiver_id,
+                "message": message,
+                "timestamp": datetime.now(timezone.utc),
+            }
+
             MessageTasks.store_messages.delay(sender_id, receiver_id, message)
             print(
                 f"Dispatched Celery task to store message from {sender_id} to {receiver_id}"
             )
+
+            await Message.cache_new_message(sender_id, receiver_id, new_message, redis)
 
             # Publish message
             await redis.publish(
