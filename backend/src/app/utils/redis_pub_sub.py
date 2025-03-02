@@ -3,13 +3,13 @@ import json
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from src.app.utils.redis_dependencies import get_redis_client
+from src.app.utils.redis_dependencies import get_redis_client_ws
 
 
 class RedisPubSUb:
     @staticmethod
     async def redis_subscriber(
-        websocket, channel, redis: Redis = Depends(get_redis_client)
+        websocket, channel, redis: Redis = Depends(get_redis_client_ws)
     ):
         print(f"[Subscriber] Attempting to subscribe to channel: {channel}")
         pubsub = redis.pubsub()

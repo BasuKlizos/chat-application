@@ -9,7 +9,7 @@ from redis.asyncio import Redis
 from src.database import user_collections
 from src.app.models.message_models import Message
 from src.app.utils.redis_pub_sub import RedisPubSUb
-from src.app.utils.redis_dependencies import get_redis_client
+from src.app.utils.redis_dependencies import get_redis_client_ws
 from src.app.utils.celery_tasks import MessageTasks
 
 ws_routes = APIRouter()
@@ -19,7 +19,7 @@ active_connections: Dict[str, WebSocket] = {}
 
 @ws_routes.websocket("/ws/{user_id}")
 async def websocket_endpoints(
-    websocket: WebSocket, user_id: str, redis: Redis = Depends(get_redis_client)
+    websocket: WebSocket, user_id: str, redis: Redis = Depends(get_redis_client_ws)
 ):
     await websocket.accept()
     active_connections[user_id] = websocket
