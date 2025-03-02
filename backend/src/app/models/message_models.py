@@ -19,7 +19,7 @@ class Message:
         await chat_collections.insert_one(chat_data)
 
     @staticmethod
-    async def get_chat_history(user1_id, user2_id):
+    async def fetch_chat_history(user1_id, user2_id):
 
         query = {
             "$or": [
