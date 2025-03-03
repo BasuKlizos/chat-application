@@ -1,0 +1,19 @@
+networks:
+  my-networks:
+    driver: bridge
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend-services
+    ports:
+      - "3000:3000"
+    volumes:
+      - .frontend/:/app
+    working_dir: /app
+    command: "npm start"
+    depends_on:
+      - backend
+    networks:
+      - my-networks
+    restart: unless-stopped
