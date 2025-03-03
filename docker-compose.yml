@@ -3,31 +3,38 @@ networks:
     driver: bridge
 
 services:
-  frontend:
-    build: ./frontend
-    container_name: frontend-services
-    ports:
-      - "3000:3000"
-    volumes:
-      - .frontend/:/app
-    working_dir: /app
-    command: "npm start"
-    depends_on:
-      - backend
-    networks:
-      - my-networks
-    restart: unless-stopped
+  # frontend:
+  #   build: ./frontend
+  #   container_name: frontend-services
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - .frontend/:/app
+  #   working_dir: /app
+  #   command: "npm start"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - my-networks
+  #   restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend-services
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
     working_dir: /app
-    env_file:
-      - backend/.env
+    environment:
+      - MONGO_URI=${DATABASE_URL_DOCKER}
+      # - DB_NAME=${DB_NAME_DOCKER}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET_KEY=2b84e3600996cbbc3fb3fe013b3de85f099bcb07
+      - ALGORITHM=HS256
     depends_on:
       - mongodb
       - redis
@@ -35,9 +42,40 @@ services:
       - my-networks
     restart: unless-stopped
 
+  celery_worker:
+    build: ./backend
+    container_name: celery_worker
+    command: celery -A src.app.celery.celery_worker:celery_app worker --loglevel=info
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - backend
+      - redis
+    networks:
+      - my-networks
+    restart: unless-stopped
+
+  flower:
+    build: ./backend
+    container_name: flower
+    command: celery -A src.app.celery.celery_worker:celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - backend
+      - redis
+      - celery_worker
+    networks:
+      - my-networks
+    restart: unless-stopped
+
   mongodb:
     image: mongo
-    container_name: mongoDB-conatainer
+    container_name: mongodb-chat-conatainer
     ports:
       - "27017:27017"
     volumes:
@@ -48,28 +86,12 @@ services:
 
   redis:
     image: redis
-    container_name: redis-container
+    container_name: redis-chat-container
     ports:
       - "6379:6379"
     networks:
       - my-networks
     restart: unless-stopped
-
-  celery_worker:
-    build: ./backend
-    container_name: celery_worker
-    command:
-      sh -c "celery -A src.celery.celery_worker:celery_app worker --loglevel=info &
-      celery -A src.celery.celery_worker:celery_app flower --port=5555"
-    env_file:
-      - backend/.env
-    depends_on:
-      - backend
-      - redis
-    networks:
-      - my-networks
-    restart: unless-stopped
-
   prometheus:
     image: prom/prometheus
     container_name: prometheus-container
@@ -79,7 +101,7 @@ services:
       - prometheus_data:/etc/prometheus # Persistent storage for metrics
       - ./prometheus.yml:/etc/prometheus/prometheus.yml # Config file (bind mount)
     networks:
-      - my_network
+      - my-networks
     restart: unless-stopped
 
   grafana:
@@ -95,7 +117,7 @@ services:
     depends_on:
       - prometheus
     networks:
-      - my_network
+      - my-networks
     restart: unless-stopped
 
 # Persistent storage

@@ -22,6 +22,7 @@ auth_routes = APIRouter(prefix="/auth")
     status_code=status.HTTP_201_CREATED,
 )
 async def user_signup(user_create: UserCreate):
+    print("successfully user registered to db.")
     try:
         await UserValidation.is_user_exists(
             username=user_create.username, email=user_create.email
@@ -46,6 +47,7 @@ async def user_signup(user_create: UserCreate):
     try:
         user_dict = user_create.model_dump(exclude={"confirm_password"})
         user_result = await user_collections.insert_one(user_dict)
+       
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error inserting user: {str(e)}")
 
@@ -56,6 +58,7 @@ async def user_signup(user_create: UserCreate):
             username=user_dict["username"],
             email=user_dict["email"],
             created_at=user_dict["created_at"],
+            is_online = user_dict["is_online"],
         ),
     )
     user_response_dict = user_response.model_dump()

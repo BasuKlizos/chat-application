@@ -9,6 +9,10 @@ from src.app.routes import websockets
 from src.app.routes import auth, users, chats
 from src.app.redis.conf_redis import lifespan
 from src.app.utils.metrics import HTTP_REQUESTS, CPU_USAGE, MEMORY_USAGE
+from src.config import settings
+from dotenv import load_dotenv
+
+load_dotenv(".env")
 
 app = FastAPI(lifespan=lifespan)
 

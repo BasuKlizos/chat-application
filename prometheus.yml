@@ -1,5 +1,5 @@
 global:
-  scrape_interval: 10s  # Adjust scrape frequency
+  scrape_interval: 5s  # Adjust scrape frequency
 
 scrape_configs:
   - job_name: "backend"

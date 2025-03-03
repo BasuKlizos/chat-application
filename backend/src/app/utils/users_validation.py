@@ -16,11 +16,11 @@ class UserValidation:
         if username:
             user_by_username = await user_collections.find_one({"username": username})
             if user_by_username:
-                raise HTTPException(status_code=400, detail="Username already exists")
+                raise HTTPException(status_code=409, detail="Username already exists")
         if email:
             user_by_email = await user_collections.find_one({"email": email})
             if user_by_email:
-                raise HTTPException(status_code=400, detail="Email already exists")
+                raise HTTPException(status_code=409, detail="Email already exists")
 
     @classmethod
     async def is_password_matched(cls, password: str, confirm_password: str):
