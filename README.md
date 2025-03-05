@@ -1,104 +1,131 @@
-# Chat Application
+# Real-Time Chat Application with Horizontal Scalability
 
-A real-time chat application designed for scalability. This project combines a FastAPI backend, WebSocket support for real-time communication, Celery for background processing, MongoDB as the database, and Redis for caching and pub/sub messaging. The system is instrumented with Prometheus for monitoring and Grafana for visualizing metrics.
+A high-performance, real-time chat application built with **FastAPI**, **Redis**, **MongoDB**, **Loki**, **Prometheus**, and **Grafana**. Designed for **horizontal scalability**, it efficiently handles high traffic and large user bases.
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Architecture](#architecture)
-  - [Backend Overview](#backend-overview)
-    - [FastAPI & WebSockets](#fastapi--websockets)
-    - [Database (MongoDB)](#database-mongodb)
-    - [Caching & Pub/Sub (Redis)](#caching--pubsub-redis)
-    - [Background Tasks (Celery)](#background-tasks-celery)
-    - [Monitoring (Prometheus & Grafana)](#monitoring-prometheus--grafana)
-  - [Frontend Overview](#frontend-overview)
-- [Setup and Running](#setup-and-running)
-- [Client Usage](#client-usage)
-- [Testing and Load Simulation](#testing-and-load-simulation)
-- [Troubleshooting](#troubleshooting)
-- [Future Enhancements](#future-enhancements)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Installation & Setup](#installation--setup)
+  - [Clone the Repository](#1-clone-the-repository)
+  - [Setup Environment Variables](#2-setup-environment-variables)
+  - [Run the Application](#3-run-the-application)
+- [System Architecture](#system-architecture)
+  - [Scalability](#scalability)
+  - [Pub/Sub Messaging with Redis](#pubsub-messaging-with-redis)
+  - [Persistent Data with MongoDB](#persistent-data-with-mongodb)
+  - [Monitoring & Logging](#monitoring--logging)
+- [Scaling the Application](#scaling-the-application)
+  - [Scaling FastAPI](#scaling-fastapi)
+  - [Scaling Redis and MongoDB](#scaling-redis-and-mongodb)
+- [License](#license)
 
 ## Overview
+This chat application enables **real-time messaging**, **scalable online status tracking**, and **robust monitoring** using modern backend technologies. It leverages **Docker** and **Docker Compose** to ensure seamless deployment and scalability.
 
-This chat application enables real-time messaging between users. The backend processes WebSocket connections for live chat and REST API calls for tasks such as authentication and chat history retrieval. The system offloads database operations and other heavy tasks to Celery workers while caching frequently requested chat data in Redis. Monitoring is handled via Prometheus (which scrapes application metrics) and visualized through Grafana dashboards.
+## Key Features
 
-## Architecture
+- **Real-Time Messaging**: Low-latency chat system powered by Redis Pub/Sub.
+- **Horizontal Scalability**: Runs multiple FastAPI instances behind a load balancer.
+- **Pub/Sub Architecture**: Uses Redis for message distribution.
+- **Persistent Chat History**: Stores messages in MongoDB.
+- **Monitoring & Logging**:
+  - **Prometheus** for metrics collection.
+  - **Grafana** for visualization.
+  - **Loki** for centralized logging.
+- **Online Status Tracking**: Redis efficiently manages online users across multiple instances.
 
-### Backend Overview
+## Tech Stack
 
-The backend is the heart of the system and is built using FastAPI. It is responsible for handling real-time connections, storing messages, and providing a robust API for user management and chat retrieval.
+- **FastAPI** - High-performance Python web framework.
+- **Redis** - In-memory database for real-time Pub/Sub messaging and online status tracking.
+- **MongoDB** - NoSQL database for persistent chat storage.
+- **Prometheus** - Metrics collection and monitoring.
+- **Grafana** - Dashboard visualization for system performance.
+- **Loki** - Centralized logging solution for debugging and analytics.
 
-#### FastAPI & WebSockets
+## Installation & Setup
 
-- **REST Endpoints:**  
-  FastAPI provides several HTTP endpoints for user authentication, chat history retrieval, and other functionalities.
-  
-- **WebSocket Endpoint:**  
-  The `/ws/{user_id}` endpoint enables persistent, two-way communication. Clients connect via WebSocket to send and receive messages in real time.
-  
-- **CORS Configuration:**  
-  CORS middleware is configured to allow requests from any origin, ensuring seamless communication with the frontend.
+### 1. Clone the Repository
 
-#### Database (MongoDB)
+```bash
+git clone https://github.com/yourusername/chatapp.git
+cd chatapp
+```
 
-- **MongoDB Storage:**  
-  Chat messages and user data are stored in MongoDB. The application uses the Motor asynchronous driver for efficient, non-blocking database operations.
-  
-- **Serialization:**  
-  Custom serialization functions are implemented to convert MongoDB-specific types (such as ObjectId and datetime) into JSON-serializable formats.
+### 2. Setup Environment Variables
 
-#### Caching & Pub/Sub (Redis)
+Copy the example environment file and configure necessary variables:
 
-- **Caching:**  
-  Chat histories are cached in Redis using sorted sets. Keys are constructed by sorting user IDs to maintain consistency. This cache helps in fast retrieval of chat history without querying the database every time.
-  
-- **Pub/Sub Messaging:**  
-  Redis also facilitates real-time messaging between clients by publishing messages to specific channels, ensuring that messages are delivered across multiple instances in a distributed setup.
+```bash
+cp .example_env .env
+```
 
-#### Background Tasks (Celery)
+### 3. Run the Application
 
-- **Task Offloading:**  
-  Celery is used to offload time-consuming tasks such as storing messages to MongoDB. Tasks are queued in a message broker (Redis) and processed asynchronously by dedicated worker processes.
-  
-- **Event Loop Management:**  
-  Celery tasks use a fresh event loop for every task to avoid issues like the "Event loop is closed" error, ensuring robust processing.
-  
-- **Task Monitoring:**  
-  Flower is used as a monitoring dashboard to track task execution, failures, and performance metrics for Celery workers.
+Use **Docker Compose** to build and start all services:
 
-#### Monitoring (Prometheus & Grafana)
+```bash
+docker-compose up --build
+```
 
-- **Prometheus Metrics:**  
-  The application is instrumented with Prometheus. Custom middleware and counters track HTTP requests, CPU and memory usage, and WebSocket events. Metrics are exposed on a `/metrics` endpoint.
-  
-- **Grafana Dashboards:**  
-  Grafana visualizes the metrics scraped by Prometheus, providing real-time insights into system performance and usage trends.
+- FastAPI will be accessible at `http://localhost:8000`.
+- Grafana dashboard available at `http://localhost:3000`.
+- Loki logs can be queried via Grafana.
 
-### Frontend Overview
+## System Architecture
 
-- **Frontend Application:**  
-  The frontend is built using a modern JavaScript framework (e.g., React, Angular, or Vue.js) and runs on a separate port (typically 3000). It handles user interactions, displays chat messages, and manages WebSocket connections.
-  
-- **WebSocket Client:**  
-  The frontend connects to the backend WebSocket endpoint (e.g., `ws://<backend-host>:8000/ws/{user_id}`) for real-time communication.
-  
-- **REST API Integration:**  
-  For authentication, chat history retrieval, and other functionalities, the frontend communicates with the backend through RESTful API endpoints.
+### Scalability
 
-## Setup and Running
+The system scales horizontally using **FastAPI replicas** behind a load balancer. Redis and MongoDB efficiently handle increased traffic.
 
-### Prerequisites
+### Pub/Sub Messaging with Redis
 
-- **Python 3.11+** (for backend development)
-- **Node.js** (for frontend development, if applicable)
-- **MongoDB** and **Redis** installed or available via cloud services
-- **Celery** and **Prometheus/Grafana** are part of the deployment environment
+- **FastAPI publishes chat messages** to a Redis channel.
+- **All instances subscribe to Redis**, ensuring real-time message delivery.
+- **Clients receive instant updates** when a message is published.
 
-### Running the Backend
+### Persistent Data with MongoDB
 
-1. **Install Dependencies:**
+- Stores chat history persistently.
+- Supports **replication and sharding** for high availability.
 
-   ```bash
-   cd backend
-   pip install -r requirements.txt
+### Monitoring & Logging
+
+#### Prometheus Metrics
+
+- **HTTP Requests** (`http_requests_total`, `http_request_duration_seconds`)
+- **WebSocket Metrics** (`ws_connections_active`, `ws_messages_total`)
+- **System Usage** (`cpu_usage_percent`, `memory_usage_percent`)
+
+#### Grafana Dashboards
+
+- Provides real-time monitoring for system performance and usage.
+- Fetches metrics from **Prometheus**.
+
+#### Loki for Logging
+
+- Centralized log aggregation.
+- Easily searchable logs via Grafana.
+
+## Scaling the Application
+
+### Scaling FastAPI
+
+Modify `docker-compose.yml` to increase FastAPI replicas:
+
+```yaml
+services:
+  fastapi:
+    deploy:
+      replicas: 3  # Adjust replicas as needed
+```
+
+### Scaling Redis and MongoDB
+
+- **Redis Cluster**: Deploy multiple Redis instances for high availability.
+- **MongoDB Sharding**: Scale MongoDB horizontally by distributing data across shards.
+
+## License
+This project is licensed under the MIT License.
