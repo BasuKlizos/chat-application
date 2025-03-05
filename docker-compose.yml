@@ -3,25 +3,27 @@ networks:
     driver: bridge
 
 services:
-  # frontend:
-  #   build: ./frontend
-  #   container_name: frontend-services
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - .frontend/:/app
-  #   working_dir: /app
-  #   command: "npm start"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - my-networks
-  #   restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile  # Uses your custom frontend Dockerfile
+    container_name: frontend-services
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Avoids overwriting `node_modules` from the host
+    working_dir: /app
+    depends_on:
+      - backend
+    networks:
+      - my-networks
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile 
     container_name: backend-services
     ports:
       - "8000:8000"
@@ -30,11 +32,10 @@ services:
     working_dir: /app
     environment:
       - MONGO_URI=mongodb://mongodb:27017
-      # - DB_NAME=${DB_NAME_DOCKER}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - JWT_SECRET_KEY=2b84e3600996cbbc3fb3fe013b3de85f099bcb07
-      - ALGORITHM=HS256 
+      - ALGORITHM=HS256
     depends_on:
       - mongodb
       - redis
@@ -44,7 +45,9 @@ services:
     restart: unless-stopped
 
   # celery_worker:
-  #   build: ./backend
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile 
   #   container_name: celery_worker
   #   command: celery -A src.app.celery.celery_worker:celery_app worker --loglevel=info
   #   environment:
@@ -58,7 +61,9 @@ services:
   #   restart: unless-stopped
 
   # flower:
-  #   build: ./backend
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile  
   #   container_name: flower
   #   command: celery -A src.app.celery.celery_worker:celery_app flower --port=5555
   #   ports:
@@ -76,7 +81,7 @@ services:
 
   mongodb:
     image: mongo
-    container_name: mongodb-chat-conatainer
+    container_name: mongodb-chat-container
     ports:
       - "27017:27017"
     volumes:
@@ -86,21 +91,22 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis
+    image: redis:7-alpine  
     container_name: redis-chat-container
     ports:
       - "6379:6379"
     networks:
       - my-networks
     restart: unless-stopped
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus-container
     ports:
       - "9090:9090"
     volumes:
-      - prometheus_data:/etc/prometheus # Persistent storage for metrics
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Config file (bind mount)
+      - prometheus_data:/etc/prometheus  # Persistent storage for metrics
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Config file (bind mount)
     networks:
       - my-networks
     restart: unless-stopped
@@ -111,23 +117,22 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - grafana_data:/var/lib/grafana # Persistent storage for dashboards
+      - grafana_data:/var/lib/grafana  # Persistent storage for dashboards
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-      # - GF_INSTALL_PLUGINS=grafana-loki
     depends_on:
       - prometheus
       - loki
     networks:
       - my-networks
     restart: unless-stopped
-  
+
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:latest 
     container_name: loki-container
     ports:
-      - "3100:3100" 
+      - "3100:3100"
     volumes:
       - loki_data:/loki  # Use a named volume instead of /var/loki
       - ./loki-config.yml:/etc/loki/local-config.yml  # Loki config file
