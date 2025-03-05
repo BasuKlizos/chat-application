@@ -45,7 +45,7 @@ services:
   celery_worker:
     build: ./backend
     container_name: celery_worker
-    command: celery -A src.app.celery.celery_worker:celery_app worker --loglevel=info
+    command: celery -A src.app.celery.celery_worker:celery_app worker --pool=solo --loglevel=info
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
