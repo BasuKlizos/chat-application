@@ -1,3 +1,4 @@
+import time
 import psutil
 
 from fastapi import FastAPI, Request, Response
@@ -8,8 +9,9 @@ from prometheus_client import Counter, Gauge, generate_latest
 from src.app.routes import websockets
 from src.app.routes import auth, users, chats
 from src.app.redis.conf_redis import lifespan
-from src.app.utils.metrics import HTTP_REQUESTS, CPU_USAGE, MEMORY_USAGE
+from src.app.utils.metrics import HTTP_REQUESTS, CPU_USAGE, MEMORY_USAGE, DISK_USAGE
 from src.config import settings
+from src.app.utils.loki_config import root_logger
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -30,16 +32,34 @@ app.include_router(users.user_routes)
 app.include_router(chats.chat_routes)
 
 
-# Middleware to update HTTP metrics
 @app.middleware("http")
 async def prometheus_middleware(request: Request, call_next):
-    HTTP_REQUESTS.inc()
-    CPU_USAGE.set(psutil.cpu_percent())
+    HTTP_REQUESTS.inc()  
+
+    start_time = time.time()  # Track request duration
+
+    
+    CPU_USAGE.set(psutil.cpu_percent(interval=None))
     MEMORY_USAGE.set(psutil.virtual_memory().used / (1024 * 1024))
-    response = await call_next(request)
+    DISK_USAGE.set(psutil.disk_usage("/").percent) 
+
+    root_logger.info(f"REQUEST: {request.method} {request.url}") 
+
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        root_logger.error(f"ERROR: {str(e)}", exc_info=True)
+        raise e
+    
+    # Measure response time
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)  # Add response time to headers
+
+    root_logger.info(f"RESPONSE: {response.status_code} | Time: {process_time:.4f}s")
+
     return response
 
-# Expose a /metrics endpoint for Prometheus to scrape
+
 @app.get("/metrics")
 async def metrics():
     return Response(generate_latest(), media_type="text/plain")

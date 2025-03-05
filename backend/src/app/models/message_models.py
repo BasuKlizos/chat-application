@@ -8,6 +8,7 @@ from dateutil import parser
 
 from src.database import chat_collections
 from src.app.utils.serialization import Serialization
+# from src.app.utils.task_queue import broker
 
 
 class Message:
@@ -22,6 +23,14 @@ class Message:
         }
 
         await chat_collections.insert_one(chat_data)
+
+    # @staticmethod
+    # @broker.task
+    # async def queue_message(sender_id: str, receiver_id: str, message: str):
+    #     try:
+    #         await Message.save_messaage(sender_id, receiver_id, message)
+    #     except Exception as e:
+    #         print(f"Error storing message: {e}")
 
     @staticmethod
     async def fetch_chat_history(user1_id: str, user2_id: str, redis: Redis):
@@ -101,7 +110,7 @@ class Message:
             ts_float = ts.timestamp()
         else:
             ts_float = time.time()
-            
+
         await redis.zadd(conversation_key, {json.dumps(message_copy): ts_float})
 
         await redis.expire(conversation_key, 86400)

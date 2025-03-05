@@ -544,6 +544,28 @@ body {
 .users-list ul {
     list-style: none;
     padding: 0;
+    height: 80vh; /* Set height to 80% of the viewport height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    scroll-behavior: smooth; /* Optional: Enable smooth scrolling */
+}
+
+/* Custom Scrollbar Styling */
+.users-list ul::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.users-list ul::-webkit-scrollbar-track {
+    background: #2c3e50; /* Color of the track */
+    border-radius: 4px;
+}
+
+.users-list ul::-webkit-scrollbar-thumb {
+    background: #34495e; /* Color of the scrollbar thumb */
+    border-radius: 4px;
+}
+
+.users-list ul::-webkit-scrollbar-thumb:hover {
+    background: #1abc9c; /* Color of the scrollbar thumb on hover */
 }
 
 .users-list li {
@@ -574,6 +596,7 @@ body {
     align-items: center;
     justify-content: center;
 }
+
 
 /* User Authentication */
 .user-auth {
