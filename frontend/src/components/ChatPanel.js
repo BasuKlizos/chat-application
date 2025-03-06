@@ -42,7 +42,7 @@ const ChatPanel = ({ currentUser, selectedUser }) => {
 
     fetchChatHistory();
 
-    ws.current = new WebSocket(` /${currentUser.user_id}`);
+    ws.current = new WebSocket(`ws://localhost:8000/ws/${currentUser.user_id}`);
 
     ws.current.onmessage = (event) => {
       // const messageData = JSON.parse(event.data);
