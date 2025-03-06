@@ -16,7 +16,7 @@ WS_MESSAGES_RECEIVED = Counter("ws_messages_received_total", "Total WebSocket me
 WS_MESSAGES_SENT = Counter("ws_messages_sent_total", "Total WebSocket messages sent")
 WS_DB_QUERIES = Counter("ws_database_queries_total", "Total number of database queries during WebSocket sessions")
 WS_MESSAGES_TOTAL = Counter("ws_messages_total", "Total number of WebSocket messages sent and received")
-WS_CONNECTIONS_DISC = Gauge("ws_disconnections_total", "Total number of WebSocket disconnections")
+WS_CONNECTIONS = Gauge("ws_disconnections_total", "Total number of WebSocket disconnections")
 
 
 # Redis Metrics

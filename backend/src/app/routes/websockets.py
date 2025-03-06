@@ -20,7 +20,6 @@ from src.app.utils.metrics import (
     WS_MESSAGES_TOTAL,
     REDIS_QUERIES_TOTAL,
     REDIS_CHANNELS_CREATED,
-    WS_CONNECTIONS_DISC,
 )
 from src.app.utils.loki_config import ws_logger
 
@@ -121,7 +120,7 @@ async def websocket_endpoints(
         del active_connections[user_id]
 
         REDIS_QUERIES_TOTAL.inc()
-        WS_CONNECTIONS_DISC.dec()
+        WS_CONNECTIONS.dec()
 
         ws_logger.info(f"WebSocket DISCONNECTED: User {user_id}")
         print(f"User {user_id} disconnected.")
