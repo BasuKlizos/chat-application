@@ -20,7 +20,9 @@ from src.app.utils.metrics import (
     WS_MESSAGES_TOTAL,
     REDIS_QUERIES_TOTAL,
     REDIS_CHANNELS_CREATED,
+    WS_CONNECTIONS_DISC,
 )
+
 # from src.app.utils.loki_config import ws_logger
 
 ws_routes = APIRouter()
@@ -60,6 +62,10 @@ async def websocket_endpoints(
 
             # ws_logger.info(f"MESSAGE RECEIVED: {data} | From: {user_id}")
 
+            # if data == "ping":
+            #     await websocket.send_text("pong")
+            #     continue
+
             print(f"[WebSocket] Received data: {data}")
             sender_id, receiver_id, message = data.split(":", 2)
 
@@ -75,9 +81,9 @@ async def websocket_endpoints(
             asyncio.create_task(Message.save_messaage(sender_id, receiver_id, message))
             print(f"Stored message directly in MongoDB.")
             WS_DB_QUERIES.inc()
-            ws_logger.info(
-                f"Stored message in MongoDB | From: {sender_id} → To: {receiver_id}"
-            )
+            # ws_logger.info(
+            #     f"Stored message in MongoDB | From: {sender_id} → To: {receiver_id}"
+            # )
             # MessageTasks.store_messages.delay(sender_id, receiver_id, message)
             # print(
             #     f"Dispatched Celery task to store message from {sender_id} to {receiver_id}"
@@ -116,18 +122,20 @@ async def websocket_endpoints(
                 # ws_logger.warning(f"Receiver {receiver_id} is offline.")
                 print(f"[WebSocket] Receiver {receiver_id} is offline.")
     except Exception as e:
-        ws_logger.error(f"WebSocket ERROR for User {user_id}: {str(e)}", exc_info=True)
+        # ws_logger.error(f"WebSocket ERROR for User {user_id}: {str(e)}", exc_info=True)
         print(f"WebSocket error: {e}")
     finally:
         subscriber_task.cancel()
         del active_connections[user_id]
 
         REDIS_QUERIES_TOTAL.inc()
-        WS_CONNECTIONS.dec()
 
         # ws_logger.info(f"WebSocket DISCONNECTED: User {user_id}")
         print(f"User {user_id} disconnected.")
 
+        # if user_id not in active_connections:
+        WS_CONNECTIONS_DISC.dec()
+        WS_CONNECTIONS.dec()
         await user_collections.update_one(
             {"_id": ObjectId(user_id)}, {"$set": {"is_online": False}}
         )

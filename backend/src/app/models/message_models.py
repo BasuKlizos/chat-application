@@ -114,3 +114,7 @@ class Message:
         await redis.zadd(conversation_key, {json.dumps(message_copy): ts_float})
 
         await redis.expire(conversation_key, 86400)
+
+    @staticmethod 
+    async def make_user_offile(user_id: str):
+        ...

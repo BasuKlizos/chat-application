@@ -39,7 +39,7 @@ services:
     depends_on:
       - mongodb
       - redis
-      - loki
+      # - loki
     networks:
       - my-networks
     restart: unless-stopped
@@ -123,23 +123,23 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
-      - loki
+      # - loki
     networks:
       - my-networks
     restart: unless-stopped
 
-  loki:
-    image: grafana/loki:latest 
-    container_name: loki-container
-    ports:
-      - "3100:3100"
-    volumes:
-      - loki_data:/loki  # Use a named volume instead of /var/loki
-      - ./loki-config.yml:/etc/loki/local-config.yml  # Loki config file
-    command: -config.file=/etc/loki/local-config.yml
-    networks:
-      - my-networks
-    restart: unless-stopped
+  # loki:
+  #   image: grafana/loki:latest 
+  #   container_name: loki-container
+  #   ports:
+  #     - "3100:3100"
+  #   volumes:
+  #     - loki_data:/loki  # Use a named volume instead of /var/loki
+  #     - ./loki-config.yml:/etc/loki/local-config.yml  # Loki config file
+  #   command: -config.file=/etc/loki/local-config.yml
+  #   networks:
+  #     - my-networks
+  #   restart: unless-stopped
 
 # Persistent storage
 volumes:

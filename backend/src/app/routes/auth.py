@@ -12,6 +12,7 @@ from src.app.utils.users_validation import UserValidation
 from src.app.utils.hashing import Hash
 from src.database import user_collections
 from src.app.utils.jwt import JWTAuth
+from src.app.utils.metrics import USER_REGISTRATIONS
 
 auth_routes = APIRouter(prefix="/auth")
 
@@ -62,6 +63,9 @@ async def user_signup(user_create: UserCreate):
         ),
     )
     user_response_dict = user_response.model_dump()
+
+    USER_REGISTRATIONS.inc()
+
     return user_response_dict
 
 

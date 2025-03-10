@@ -8,6 +8,8 @@ const ChatPanel = ({ currentUser, selectedUser }) => {
   const [newMessage, setNewMessage] = useState("");
   const chatEndRef = useRef(null);
   const ws = useRef(null);
+  // const reconnectInterval = useRef(null);
+  // const reconnectAttempts = useRef(0);
 
   useEffect(() => {
     if (!selectedUser) return;
@@ -83,6 +85,7 @@ const ChatPanel = ({ currentUser, selectedUser }) => {
     ws.current.send(`${currentUser.user_id}:${selectedUser.user_id}:${newMessage}`);
     setNewMessage("");
   };
+
 
   return (
     <div className="chat-container">
