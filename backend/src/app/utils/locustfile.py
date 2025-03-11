@@ -179,9 +179,7 @@ class WebSocketLocust(User):
         #     "sender_id": self.current_id,
         #     "receiver_id": self.selected_user_id,
         # }
-        msg_payload = f"""{self.current_id}\
-            :{self.selected_user_id}:\
-                {'Hello from WebSocket load test.'}"""
+        msg_payload = f"{self.current_id}:{self.selected_user_id}:{'Hello from WebSocket load test.'}"
 
         try:
             self.ws.send(json.dumps(msg_payload))
