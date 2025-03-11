@@ -40,13 +40,15 @@ class JWTAuth:
     # @classmethod
     # def get_current_user(cls, token: str = Depends(oauth2_scheme)):
     #     try:
-    #         payload = jwt.decode(token, cls.JWT_SECRET_KEY, algorithms=[cls.ALGORITHM])
+    #         payload = jwt.decode(token, cls.JWT_SECRET_KEY,
+    #           algorithms=[cls.ALGORITHM])
     #         username = payload.get("username")
     #         if not username:
     #             raise HTTPException(status_code=401, detail="Username not found")
     #         return username
     #     except JWTError:
-    #         raise HTTPException(status_code=401, detail="Token is invalid or expired.")
+    #         raise HTTPException(status_code=401, detail="Token is invalid or
+    #                                                               expired.")
     #     except Exception as e:
     #         raise HTTPException(
     #             status_code=500,

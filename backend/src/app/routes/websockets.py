@@ -85,7 +85,8 @@ async def websocket_endpoints(
             # )
             # MessageTasks.store_messages.delay(sender_id, receiver_id, message)
             # print(
-            #     f"Dispatched Celery task to store message from {sender_id} to {receiver_id}"
+            #     f"Dispatched Celery task to
+            #       store message from {sender_id} to {receiver_id}"
             # )
             # try:
             #     Message.queue_message.kiq(sender_id, receiver_id, message)
@@ -121,7 +122,9 @@ async def websocket_endpoints(
                 # ws_logger.warning(f"Receiver {receiver_id} is offline.")
                 print(f"[WebSocket] Receiver {receiver_id} is offline.")
     except Exception as e:
-        # ws_logger.error(f"WebSocket ERROR for User {user_id}: {str(e)}", exc_info=True)
+        # ws_logger.error(f"WebSocket ERROR for User
+        #                               {user_id}: {str(e)}",
+        #                                               exc_info=True)
         print(f"WebSocket error: {e}")
     finally:
         subscriber_task.cancel()
