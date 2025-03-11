@@ -1,4 +1,3 @@
-import asyncio
 from asgiref.sync import async_to_sync
 
 from src.app.celery.celery_worker import celery_app
@@ -9,8 +8,8 @@ class MessageTasks:
     @staticmethod
     @celery_app.task(name="Store chats to db", ignore_result=True)
     def store_messages(sender_id: str, receiver_id: str, message: str):
-       return async_to_sync(Message.save_messaage)(sender_id, receiver_id, message)
-    
+        return async_to_sync(Message.save_messaage)(sender_id, receiver_id, message)
+
     # def store_messages(sender_id: str, receiver_id: str, message: str):
     #     from eventlet import greenthread
     #     greenthread.spawn_n(asyncio.run, Message.save_messaage(sender_id, receiver_id, message))

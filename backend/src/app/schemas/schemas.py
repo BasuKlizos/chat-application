@@ -31,9 +31,11 @@ class UserResponse(BaseModel):
     msg: Optional[str] = None
     data: GetUserData
 
+
 class LoginRequest(BaseModel):
     username_or_email: Union[EmailStr, str]
     password: str
+
 
 class LoginResponse(UserResponse):
     access_token: str

@@ -7,7 +7,7 @@
 # import json
 
 # class FastAPIUser(HttpUser):
-#     wait_time = between(1, 3) 
+#     wait_time = between(1, 3)
 #     logged_in_users = []
 
 #     def on_start(self):
@@ -54,13 +54,13 @@
 #             self.user_id = data["data"]["id"]
 #             self.access_token = data["access_token"]
 #             self.ws_url = f"ws://127.0.0.1:8000/ws/{self.user_id}"
-                
+
 #             print(f"Login successful! WebSocket URL: {self.ws_url}")
 #         else:
 #             print(f"Login failed: {response.text}")
-        
+
 #         FastAPIUser.logged_in_users.append(self.user_id)
-    
+
 #     @task
 #     def websocket_chat(self):
 #         if hasattr(self, "ws_url"):
@@ -89,33 +89,31 @@
 
 #         except Exception as e:
 #             print(f"WebSocket error: {e}")
-    
-    # def random_message(self):
-    #     """Generates a random message for chat testing."""
-    #     messages = [
-    #         "Hey there!",
-    #         "How’s it going?",
-    #         "What’s up?",
-    #         "Testing WebSockets!",
-    #         "This is a random chat message.",
-    #         "Hello from Locust!",
-    #         "Sending random messages for load testing.",
-    #         "FastAPI + WebSockets = Rocket",
-    #         "Let's see how this chat handles load!",
-    #         "Hello, world!"
-    #     ]
-    #     return random.choice(messages)
-    
+
+# def random_message(self):
+#     """Generates a random message for chat testing."""
+#     messages = [
+#         "Hey there!",
+#         "How’s it going?",
+#         "What’s up?",
+#         "Testing WebSockets!",
+#         "This is a random chat message.",
+#         "Hello from Locust!",
+#         "Sending random messages for load testing.",
+#         "FastAPI + WebSockets = Rocket",
+#         "Let's see how this chat handles load!",
+#         "Hello, world!"
+#     ]
+#     return random.choice(messages)
+
 
 import json
 import random
 import logging
-from datetime import datetime
 from pymongo import MongoClient
 from locust import User, task
 
-
-from websocket import create_connection, WebSocket
+from websocket import create_connection
 
 # from src.database import user_collections
 
@@ -128,7 +126,12 @@ existing_users_count = user_collections.count_documents({})
 if existing_users_count < 1000:
     users_to_create = 1000 - existing_users_count
     new_users = [
-        {"username": f"user{i}", "email": f"user{i}@example.com", "password": "123", "confirm_password":"123"}
+        {
+            "username": f"user{i}",
+            "email": f"user{i}@example.com",
+            "password": "123",
+            "confirm_password": "123",
+        }
         for i in range(existing_users_count, 1000)
     ]
     user_collections.insert_many(new_users)
@@ -149,9 +152,7 @@ class WebSocketLocust(User):
         self.selected_user_id = random.choice(
             [uid for uid in user_ids if uid != self.current_id]
         )
-        self.ws_url = (
-            f"ws://127.0.0.1:8000/ws/{self.current_id}"
-        )
+        self.ws_url = f"ws://127.0.0.1:8000/ws/{self.current_id}"
 
         try:
             self.ws = create_connection(self.ws_url)

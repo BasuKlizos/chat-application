@@ -1,12 +1,8 @@
-from bson.objectid import ObjectId
-
 from fastapi import HTTPException, status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
 from src.app.models.message_models import Message
-from src.database import chat_collections
-from src.app.utils.celery_tasks import MessageTasks
 from src.app.utils.redis_dependencies import get_redis_client_http
 
 chat_routes = APIRouter(prefix="/chat")

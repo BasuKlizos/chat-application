@@ -11,7 +11,6 @@ from src.database import user_collections
 from src.app.models.message_models import Message
 from src.app.utils.redis_pub_sub import RedisPubSUb
 from src.app.utils.redis_dependencies import get_redis_client_ws
-from src.app.utils.celery_tasks import MessageTasks
 from src.app.utils.metrics import (
     WS_CONNECTIONS,
     WS_MESSAGES_RECEIVED,
@@ -79,7 +78,7 @@ async def websocket_endpoints(
             }
 
             asyncio.create_task(Message.save_messaage(sender_id, receiver_id, message))
-            print(f"Stored message directly in MongoDB.")
+            print("Stored message directly in MongoDB.")
             WS_DB_QUERIES.inc()
             # ws_logger.info(
             #     f"Stored message in MongoDB | From: {sender_id} → To: {receiver_id}"

@@ -48,7 +48,7 @@ async def user_signup(user_create: UserCreate):
     try:
         user_dict = user_create.model_dump(exclude={"confirm_password"})
         user_result = await user_collections.insert_one(user_dict)
-       
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error inserting user: {str(e)}")
 
@@ -59,7 +59,7 @@ async def user_signup(user_create: UserCreate):
             username=user_dict["username"],
             email=user_dict["email"],
             created_at=user_dict["created_at"],
-            is_online = user_dict["is_online"],
+            is_online=user_dict["is_online"],
         ),
     )
     user_response_dict = user_response.model_dump()
@@ -107,11 +107,12 @@ async def login(user_login: LoginRequest):
         return login_user_response_dict
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 @auth_routes.post("/logout")
 async def logout_user(token_payload: dict = Depends(JWTAuth.verify_token)):
     try:
-        user_id = token_payload.get("sub") 
+        user_id = token_payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -123,6 +124,6 @@ async def logout_user(token_payload: dict = Depends(JWTAuth.verify_token)):
             raise HTTPException(status_code=404, detail="User not found")
 
         return {"message": "User logged out successfully", "status": True}
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")

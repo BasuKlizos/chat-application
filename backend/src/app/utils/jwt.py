@@ -1,7 +1,7 @@
 from datetime import datetime, timezone, timedelta
 
 from jose import JWTError, jwt
-from fastapi import HTTPException, Depends
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
 from src.config import settings

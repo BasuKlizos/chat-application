@@ -2,12 +2,12 @@ import json
 import time
 
 from datetime import datetime, timezone
-from bson.objectid import ObjectId
 from redis.asyncio import Redis
 from dateutil import parser
 
 from src.database import chat_collections
 from src.app.utils.serialization import Serialization
+
 # from src.app.utils.task_queue import broker
 
 
@@ -115,6 +115,5 @@ class Message:
 
         await redis.expire(conversation_key, 86400)
 
-    @staticmethod 
-    async def make_user_offile(user_id: str):
-        ...
+    # @staticmethod
+    # async def make_user_offile(user_id: str): ...

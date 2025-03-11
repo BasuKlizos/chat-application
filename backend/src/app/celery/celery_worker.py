@@ -1,6 +1,7 @@
 from celery import Celery
 
 from src.config import settings
+
 # from src.app.utils.celery_tasks import MessageTasks
 
 REDIS_HOST = settings.REDIS_HOST
@@ -10,7 +11,7 @@ celery_app = Celery(
     "tasks",
     broker=f"redis://{REDIS_HOST}:{REDIS_PORT}/0",
     backend=f"redis://{REDIS_HOST}:{REDIS_PORT}/0",
-    broker_connection_retry_on_startup = True
+    broker_connection_retry_on_startup=True,
 )
 
 celery_app.conf.update(
