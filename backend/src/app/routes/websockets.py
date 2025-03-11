@@ -22,7 +22,8 @@ from src.app.utils.metrics import (
     REDIS_CHANNELS_CREATED,
     WS_CONNECTIONS_DISC,
 )
-from src.app.utils.loki_config import ws_logger
+
+# from src.app.utils.loki_config import ws_logger
 
 ws_routes = APIRouter()
 
@@ -36,13 +37,11 @@ async def websocket_endpoints(
     await websocket.accept()
     active_connections[user_id] = websocket
 
-    REDIS_QUERIES_TOTAL.inc()
-
-    WS_CONNECTIONS.inc() 
+    WS_CONNECTIONS.inc()
 
     print(f"User {user_id} connected.")
 
-    ws_logger.info(f"WebSocket CONNECTED: User {user_id}")
+    # ws_logger.info(f"WebSocket CONNECTED: User {user_id}")
 
     # await RedisPubSUb.redis_subscriber(websocket, f"chat:{user_id}")
 
@@ -52,7 +51,8 @@ async def websocket_endpoints(
     )
     print(f"[WebSocket] Created subscriber task for channel: {redis_channel}")
     REDIS_CHANNELS_CREATED.inc()
-    ws_logger.info(f"Subscribed to Redis channel: {redis_channel}")
+    REDIS_QUERIES_TOTAL.inc()
+    # ws_logger.info(f"Subscribed to Redis channel: {redis_channel}")
 
     try:
         while True:
@@ -60,7 +60,11 @@ async def websocket_endpoints(
             WS_MESSAGES_RECEIVED.inc()
             WS_MESSAGES_TOTAL.inc()
 
-            ws_logger.info(f"MESSAGE RECEIVED: {data} | From: {user_id}")
+            # ws_logger.info(f"MESSAGE RECEIVED: {data} | From: {user_id}")
+
+            # if data == "ping":
+            #     await websocket.send_text("pong")
+            #     continue
 
             print(f"[WebSocket] Received data: {data}")
             sender_id, receiver_id, message = data.split(":", 2)
@@ -74,10 +78,12 @@ async def websocket_endpoints(
                 "timestamp": datetime.now(timezone.utc),
             }
 
-            await Message.save_messaage(sender_id, receiver_id, message)
+            asyncio.create_task(Message.save_messaage(sender_id, receiver_id, message))
             print(f"Stored message directly in MongoDB.")
             WS_DB_QUERIES.inc()
-            ws_logger.info(f"Stored message in MongoDB | From: {sender_id} → To: {receiver_id}")
+            # ws_logger.info(
+            #     f"Stored message in MongoDB | From: {sender_id} → To: {receiver_id}"
+            # )
             # MessageTasks.store_messages.delay(sender_id, receiver_id, message)
             # print(
             #     f"Dispatched Celery task to store message from {sender_id} to {receiver_id}"
@@ -89,7 +95,9 @@ async def websocket_endpoints(
             #     await Message.save_message(sender_id, receiver_id, message)
             #     print(f"Redis Down! Stored message directly in MongoDB.")
 
-            await Message.cache_new_message(sender_id, receiver_id, new_message, redis)
+            asyncio.create_task(
+                Message.cache_new_message(sender_id, receiver_id, new_message, redis)
+            )
             REDIS_QUERIES_TOTAL.inc()
 
             # Publish message
@@ -98,7 +106,7 @@ async def websocket_endpoints(
                 json.dumps({"sender_id": sender_id, "message": message}),
             )
             REDIS_QUERIES_TOTAL.inc()
-            ws_logger.info(f"Published message to Redis channel: chat:{receiver_id}")
+            # ws_logger.info(f"Published message to Redis channel: chat:{receiver_id}")
             print(f"[WebSocket] Published message to channel: chat:{receiver_id}")
 
             # Directly send message if the receiver is online
@@ -107,25 +115,27 @@ async def websocket_endpoints(
                     f"{sender_id}:{message}"
                 )
                 WS_MESSAGES_SENT.inc()
-                ws_logger.info(f"Sent message directly to {receiver_id}")
+                # ws_logger.info(f"Sent message directly to {receiver_id}")
                 print(f"[WebSocket] Directly sent message to {receiver_id}")
             else:
                 await websocket.send_text("User is offline.")
-                ws_logger.warning(f"Receiver {receiver_id} is offline.")
+                # ws_logger.warning(f"Receiver {receiver_id} is offline.")
                 print(f"[WebSocket] Receiver {receiver_id} is offline.")
     except Exception as e:
-        ws_logger.error(f"WebSocket ERROR for User {user_id}: {str(e)}", exc_info=True)
+        # ws_logger.error(f"WebSocket ERROR for User {user_id}: {str(e)}", exc_info=True)
         print(f"WebSocket error: {e}")
     finally:
         subscriber_task.cancel()
         del active_connections[user_id]
 
         REDIS_QUERIES_TOTAL.inc()
-        WS_CONNECTIONS_DISC.dec()
 
-        ws_logger.info(f"WebSocket DISCONNECTED: User {user_id}")
+        # ws_logger.info(f"WebSocket DISCONNECTED: User {user_id}")
         print(f"User {user_id} disconnected.")
 
+        # if user_id not in active_connections:
+        WS_CONNECTIONS_DISC.dec()
+        WS_CONNECTIONS.dec()
         await user_collections.update_one(
             {"_id": ObjectId(user_id)}, {"$set": {"is_online": False}}
         )

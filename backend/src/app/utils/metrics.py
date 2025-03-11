@@ -2,6 +2,9 @@ from prometheus_client import Counter, Gauge
 
 from prometheus_client import Counter, Gauge
 
+# Users
+USER_REGISTRATIONS = Counter("user_registrations_total", "Total number of registered users")
+
 # HTTP Metrics
 HTTP_REQUESTS = Counter("http_requests_total", "Total number of HTTP requests")
 
