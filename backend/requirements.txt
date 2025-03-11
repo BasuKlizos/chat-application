@@ -62,7 +62,6 @@ python-jose==3.4.0
 python-logging-loki==0.3.1
 python-multipart==0.0.20
 pytz==2025.1
-pywin32==308
 PyYAML==6.0.2
 pyzmq==26.2.1
 redis==5.2.1
