@@ -20,6 +20,7 @@ from src.app.utils.metrics import (
     REDIS_QUERIES_TOTAL,
     REDIS_CHANNELS_CREATED,
     WS_CONNECTIONS_DISC,
+    WS_TOTAL_CONNECTIONS,
 )
 
 # from src.app.utils.loki_config import ws_logger
@@ -37,27 +38,29 @@ async def websocket_endpoints(
     active_connections[user_id] = websocket
 
     WS_CONNECTIONS.inc()
+    WS_TOTAL_CONNECTIONS.inc()
 
     print(f"User {user_id} connected.")
 
     # ws_logger.info(f"WebSocket CONNECTED: User {user_id}")
 
     # await RedisPubSUb.redis_subscriber(websocket, f"chat:{user_id}")
-
-    redis_channel = f"chat:{user_id}"
-    subscriber_task = asyncio.create_task(
-        RedisPubSUb.redis_subscriber(websocket, redis_channel, redis)
-    )
-    print(f"[WebSocket] Created subscriber task for channel: {redis_channel}")
-    REDIS_CHANNELS_CREATED.inc()
-    REDIS_QUERIES_TOTAL.inc()
+    if user_id:
+        redis_channel = f"chat:{user_id}"
+        subscriber_task = asyncio.create_task(
+            RedisPubSUb.redis_subscriber(websocket, redis_channel, redis)
+        )
+        print(f"[WebSocket] Created subscriber task for channel: {redis_channel}")
+        REDIS_CHANNELS_CREATED.inc()
+        REDIS_QUERIES_TOTAL.inc()
     # ws_logger.info(f"Subscribed to Redis channel: {redis_channel}")
 
     try:
         while True:
             data = await websocket.receive_text()
-            WS_MESSAGES_RECEIVED.inc()
-            WS_MESSAGES_TOTAL.inc()
+            if data:
+                WS_MESSAGES_RECEIVED.inc()
+                WS_MESSAGES_TOTAL.inc()
 
             # ws_logger.info(f"MESSAGE RECEIVED: {data} | From: {user_id}")
 
@@ -101,10 +104,10 @@ async def websocket_endpoints(
             REDIS_QUERIES_TOTAL.inc()
 
             # Publish message
-            await redis.publish(
+            asyncio.create_task(redis.publish(
                 f"chat:{receiver_id}",
                 json.dumps({"sender_id": sender_id, "message": message}),
-            )
+            )) 
             REDIS_QUERIES_TOTAL.inc()
             # ws_logger.info(f"Published message to Redis channel: chat:{receiver_id}")
             print(f"[WebSocket] Published message to channel: chat:{receiver_id}")

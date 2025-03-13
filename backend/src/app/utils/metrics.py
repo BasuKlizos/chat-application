@@ -32,6 +32,9 @@ WS_MESSAGES_TOTAL = Counter(
 WS_CONNECTIONS_DISC = Gauge(
     "ws_disconnections_total", "Total number of WebSocket disconnections"
 )
+WS_TOTAL_CONNECTIONS = Counter(
+    "ws_total_connections", "Total number of Websocket connections"
+)
 
 # Redis Metrics
 REDIS_QUERIES_TOTAL = Counter(
