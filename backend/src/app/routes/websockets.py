@@ -34,6 +34,11 @@ active_connections: Dict[str, WebSocket] = {}
 async def websocket_endpoints(
     websocket: WebSocket, user_id: str, redis: Redis = Depends(get_redis_client_ws)
 ):
+    """Handles WebSocket connections for chat functionality.
+
+    This endpoint manages user connections, subscribes them to Redis channels,
+    receives and sends messages, and updates online status.
+    """
     await websocket.accept()
     active_connections[user_id] = websocket
 
@@ -104,10 +109,12 @@ async def websocket_endpoints(
             REDIS_QUERIES_TOTAL.inc()
 
             # Publish message
-            asyncio.create_task(redis.publish(
-                f"chat:{receiver_id}",
-                json.dumps({"sender_id": sender_id, "message": message}),
-            )) 
+            asyncio.create_task(
+                redis.publish(
+                    f"chat:{receiver_id}",
+                    json.dumps({"sender_id": sender_id, "message": message}),
+                )
+            )
             REDIS_QUERIES_TOTAL.inc()
             # ws_logger.info(f"Published message to Redis channel: chat:{receiver_id}")
             print(f"[WebSocket] Published message to channel: chat:{receiver_id}")

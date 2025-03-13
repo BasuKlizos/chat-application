@@ -10,11 +10,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 class JWTAuth:
+    """JWT Authentication Class"""
+
     JWT_SECRET_KEY = settings.JWT_SECRET_KEY
     ALGORITHM = settings.ALGORITHM
 
     @classmethod
     def generate_access_token(cls, user_data: dict):
+        """Generate access token"""
         expire = datetime.now(timezone.utc) + timedelta(days=1)
         payload = {
             "sub": str(user_data["_id"]),
@@ -27,6 +30,7 @@ class JWTAuth:
 
     @classmethod
     def verify_token(cls, token: str = Depends(oauth2_scheme)):
+        """Verify token"""
         try:
             payload = jwt.decode(token, cls.JWT_SECRET_KEY, algorithms=[cls.ALGORITHM])
             return payload

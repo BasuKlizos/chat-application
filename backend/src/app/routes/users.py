@@ -7,6 +7,10 @@ user_routes = APIRouter(prefix="/user")
 
 @user_routes.get("/get-users")
 async def get_all_users(token_payload: dict = Depends(JWTAuth.verify_token)):
+    """Retrieves all users from the database.
+
+    This endpoint returns a list of users with their IDs, usernames, and online status.
+    """
     try:
         # print("Token Payload:", token_payload)
 

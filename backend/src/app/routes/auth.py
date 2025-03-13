@@ -23,7 +23,11 @@ auth_routes = APIRouter(prefix="/auth")
     status_code=status.HTTP_201_CREATED,
 )
 async def user_signup(user_create: UserCreate):
-    print("successfully user registered to db.")
+    """Handles user login requests.
+
+    This endpoint verifies user credentials, updates their online status, and generates an access token.
+    """
+    # print("successfully user registered to db.")
     try:
         await UserValidation.is_user_exists(
             username=user_create.username, email=user_create.email
@@ -73,7 +77,10 @@ async def user_signup(user_create: UserCreate):
     "/login", response_model=LoginResponse, status_code=status.HTTP_200_OK
 )
 async def login(user_login: LoginRequest):
+    """Handles user login requests.
 
+    This endpoint verifies user credentials, updates their online status, and generates an access token.
+    """
     try:
         user = await UserValidation.get_user_by_email_or_username(
             user_login.username_or_email
