@@ -1,14 +1,15 @@
 global:
   scrape_interval: 5s  # Adjust scrape frequency
+  # storage.tsdb.retention_time: 30d
 
 scrape_configs:
   - job_name: "backend"
     static_configs:
       - targets: ["backend:8000"]
 
-  - job_name: "celery_worker"
-    static_configs:
-      - targets: ["celery_worker:8000"]
+  # - job_name: "celery_worker"
+  #   static_configs:
+  #     - targets: ["celery_worker:8000"]
 
   - job_name: "prometheus"
     static_configs:

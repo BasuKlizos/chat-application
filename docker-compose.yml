@@ -6,13 +6,13 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile  # Uses your custom frontend Dockerfile
+      dockerfile: Dockerfile # Uses your custom frontend Dockerfile
     container_name: frontend-services
     ports:
       - "3000:3000"
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # Avoids overwriting `node_modules` from the host
+      - /app/node_modules # Avoids overwriting `node_modules` from the host
     working_dir: /app
     depends_on:
       - backend
@@ -23,7 +23,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile 
+      dockerfile: Dockerfile
     container_name: backend-services
     ports:
       - "8000:8000"
@@ -51,7 +51,7 @@ services:
   # celery_worker:
   #   build:
   #     context: ./backend
-  #     dockerfile: Dockerfile 
+  #     dockerfile: Dockerfile
   #   container_name: celery_worker
   #   command: celery -A src.app.celery.celery_worker:celery_app worker --loglevel=info
   #   environment:
@@ -67,7 +67,7 @@ services:
   # flower:
   #   build:
   #     context: ./backend
-  #     dockerfile: Dockerfile  
+  #     dockerfile: Dockerfile
   #   container_name: flower
   #   command: celery -A src.app.celery.celery_worker:celery_app flower --port=5555
   #   ports:
@@ -95,7 +95,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine  
+    image: redis:7-alpine
     container_name: redis-chat-container
     ports:
       - "6379:6379"
@@ -109,8 +109,12 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - prometheus_data:/etc/prometheus  # Persistent storage for metrics
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Config file (bind mount)
+      - prometheus_data:/prometheus # Persistent storage for metrics
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Config file (bind mount)
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus" # Store database in /prometheus
+      - "--storage.tsdb.retention.time=30d" # Keep metrics for 30 days
     networks:
       - my-networks
     restart: unless-stopped
@@ -121,7 +125,7 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - grafana_data:/var/lib/grafana  # Persistent storage for dashboards
+      - grafana_data:/var/lib/grafana # Persistent storage for dashboards
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -133,7 +137,7 @@ services:
     restart: unless-stopped
 
   # loki:
-  #   image: grafana/loki:latest 
+  #   image: grafana/loki:latest
   #   container_name: loki-container
   #   ports:
   #     - "3100:3100"
