@@ -111,9 +111,10 @@ import json
 import random
 import logging
 from pymongo import MongoClient
-from locust import User, task
+from locust import User, task, between
 
 from websocket import create_connection
+# import websockets
 
 # from src.database import user_collections
 
@@ -123,8 +124,8 @@ db = client["chat-application-db"]
 user_collections = db["users"]
 
 existing_users_count = user_collections.count_documents({})
-if existing_users_count < 1000:
-    users_to_create = 1000 - existing_users_count
+if existing_users_count < 1500:
+    users_to_create = 1500 - existing_users_count
     new_users = [
         {
             "username": f"user{i}",
@@ -132,7 +133,7 @@ if existing_users_count < 1000:
             "password": "123",
             "confirm_password": "123",
         }
-        for i in range(existing_users_count, 1000)
+        for i in range(existing_users_count, 1500)
     ]
     user_collections.insert_many(new_users)
     logging.info(f"Added {users_to_create} new users.")
@@ -146,6 +147,8 @@ if len(user_ids) < 2:
 class WebSocketLocust(User):
     """Simulates WebSocket user behavior for load testing."""
 
+    wait_time = between(1, 5)
+
     def on_start(self):
         """Initialize WebSocket connection."""
         self.current_id = random.choice(user_ids)
@@ -156,6 +159,8 @@ class WebSocketLocust(User):
 
         try:
             self.ws = create_connection(self.ws_url)
+            # self.ws = websockets.connect(self.ws_url)
+
             logging.info(f"Connected: {self.ws_url}")
         except Exception as e:
             logging.error(f"Connection failed: {e}")

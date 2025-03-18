@@ -3,7 +3,7 @@ import asyncio
 from datetime import datetime, timezone
 
 from fastapi import WebSocket, APIRouter, Depends
-from typing import Dict
+from typing import Dict, List
 from bson.objectid import ObjectId
 from redis.asyncio import Redis
 
@@ -27,7 +27,7 @@ from src.app.utils.metrics import (
 
 ws_routes = APIRouter()
 
-active_connections: Dict[str, WebSocket] = {}
+active_connections: Dict[str, List[WebSocket]] = {}
 
 
 @ws_routes.websocket("/ws/{user_id}")
@@ -40,7 +40,11 @@ async def websocket_endpoints(
     receives and sends messages, and updates online status.
     """
     await websocket.accept()
-    active_connections[user_id] = websocket
+    # active_connections[user_id] = websocket
+
+    if user_id not in active_connections:
+        active_connections[user_id] = []
+    active_connections[user_id].append(websocket)
 
     WS_CONNECTIONS.inc()
     WS_TOTAL_CONNECTIONS.inc()
@@ -121,9 +125,10 @@ async def websocket_endpoints(
 
             # Directly send message if the receiver is online
             if receiver_id in active_connections:
-                await active_connections[receiver_id].send_text(
-                    f"{sender_id}:{message}"
-                )
+                for connection in active_connections[
+                    receiver_id
+                ]:  # Send to all actived connection
+                    await connection.send_text(f"{sender_id}:{message}")
                 WS_MESSAGES_SENT.inc()
                 # ws_logger.info(f"Sent message directly to {receiver_id}")
                 print(f"[WebSocket] Directly sent message to {receiver_id}")
@@ -138,16 +143,19 @@ async def websocket_endpoints(
         print(f"WebSocket error: {e}")
     finally:
         subscriber_task.cancel()
-        del active_connections[user_id]
-
         REDIS_QUERIES_TOTAL.inc()
+        # del active_connections[user_id]
 
-        # ws_logger.info(f"WebSocket DISCONNECTED: User {user_id}")
-        print(f"User {user_id} disconnected.")
+        if user_id in active_connections:
+            active_connections[user_id].remove(websocket)
+            if not active_connections[user_id]:
+                del active_connections[user_id]
+            # ws_logger.info(f"WebSocket DISCONNECTED: User {user_id}")
+            print(f"User {user_id} disconnected.")
+            WS_CONNECTIONS_DISC.dec()
+            WS_CONNECTIONS.dec()
 
-        # if user_id not in active_connections:
-        WS_CONNECTIONS_DISC.dec()
-        WS_CONNECTIONS.dec()
-        await user_collections.update_one(
-            {"_id": ObjectId(user_id)}, {"$set": {"is_online": False}}
-        )
+        if user_id not in active_connections:
+            await user_collections.update_one(
+                {"_id": ObjectId(user_id)}, {"$set": {"is_online": False}}
+            )
