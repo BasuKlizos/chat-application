@@ -101,10 +101,11 @@ async def websocket_endpoints(
             REDIS_QUERIES_TOTAL.inc()
 
             # Publish message
-            await redis.publish(
+            
+            asyncio.create_task(redis.publish(
                 f"chat:{receiver_id}",
                 json.dumps({"sender_id": sender_id, "message": message}),
-            )
+            ))
             REDIS_QUERIES_TOTAL.inc()
             # ws_logger.info(f"Published message to Redis channel: chat:{receiver_id}")
             print(f"[WebSocket] Published message to channel: chat:{receiver_id}")
