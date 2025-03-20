@@ -138,12 +138,14 @@ async def websocket_endpoints(
                         sender_id, receiver_id, new_message, redis
                     )
                 )
+                REDIS_QUERIES_TOTAL.inc()
                 asyncio.create_task(
                     redis.publish(
                         f"chat:{receiver_id}",
                         json.dumps({"sender_id": sender_id, "message": message}),
                     )
                 )
+                REDIS_QUERIES_TOTAL.inc()
                 print(f"[WebSocket] Cached & published message to {receiver_id}")
 
     except Exception as e:
