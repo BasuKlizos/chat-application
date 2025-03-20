@@ -29,10 +29,10 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-    # ulimits:
-    #   nofile:
-    #     soft: 65535
-    #     hard: 65535
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
     working_dir: /app
     environment:
       - MONGO_URI=mongodb://mongodb:27017
