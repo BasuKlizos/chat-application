@@ -20,6 +20,7 @@ from src.app.utils.metrics import (
     REDIS_QUERIES_TOTAL,
     REDIS_CHANNELS_CREATED,
     WS_CONNECTIONS_DISC,
+    WS_TOTAL_CONNECTIONS
 )
 
 # from src.app.utils.loki_config import ws_logger
@@ -37,7 +38,8 @@ async def websocket_endpoints(
     active_connections[user_id] = websocket
 
     WS_CONNECTIONS.inc()
-
+    WS_TOTAL_CONNECTIONS.inc()
+    
     print(f"User {user_id} connected.")
 
     # ws_logger.info(f"WebSocket CONNECTED: User {user_id}")

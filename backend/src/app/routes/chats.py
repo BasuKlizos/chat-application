@@ -12,6 +12,10 @@ chat_routes = APIRouter(prefix="/chat")
 async def get_chat_history(
     user1_id: str, user2_id: str, redis: Redis = Depends(get_redis_client_http)
 ):
+    """Retrieves the chat history between two users.
+
+    This endpoint fetches chat messages from a Redis cache or the database if the cache is empty.
+    """
     try:
         # print(f"Fetching chat history for: {user1_id} <-> {user2_id}")
 

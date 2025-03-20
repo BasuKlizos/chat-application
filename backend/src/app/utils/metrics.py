@@ -34,7 +34,11 @@ WS_CONNECTIONS_DISC = Gauge(
 )
 WS_TOTAL_CONNECTIONS = Counter(
     "ws_total_connections", "Total number of Websocket connections"
+<<<<<<< HEAD
 ) 
+=======
+)
+>>>>>>> ac769fc717e16b8b67a7c79a88cb07d4e69c2fba
 
 # Redis Metrics
 REDIS_QUERIES_TOTAL = Counter(
