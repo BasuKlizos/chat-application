@@ -16,7 +16,7 @@ services:
         hard: 65535
     working_dir: /mnt/locust
     command: >
-      locust -f locustfile.py --headless -u 2000 -r 20 --host ws://backend:8000
+      locust -f locustfile.py --headless -u 7000 -r 20 --host ws://backend:8000
     networks:
       - chat-application_my-networks
     # depends_on:
