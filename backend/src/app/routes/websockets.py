@@ -2,8 +2,9 @@ import json
 import asyncio
 from datetime import datetime, timezone
 
+
 from fastapi import WebSocket, APIRouter, Depends
-from typing import Dict
+from typing import Dict, List
 from bson.objectid import ObjectId
 from redis.asyncio import Redis
 
@@ -27,7 +28,8 @@ from src.app.utils.metrics import (
 
 ws_routes = APIRouter()
 
-active_connections: Dict[str, WebSocket] = {}
+# active_connections: Dict[str, WebSocket] = {}
+active_connections: Dict[str, List[WebSocket]] = {}
 message_queue = asyncio.Queue()
 
 
@@ -68,7 +70,10 @@ async def websocket_endpoints(
     websocket: WebSocket, user_id: str, redis: Redis = Depends(get_redis_client_ws)
 ):
     await websocket.accept()
-    active_connections[user_id] = websocket
+    # active_connections[user_id] = websocket
+    if user_id not in active_connections:
+        active_connections[user_id] = []
+    active_connections[user_id].append(websocket)
 
     WS_CONNECTIONS.inc()
     WS_TOTAL_CONNECTIONS.inc()
@@ -126,9 +131,13 @@ async def websocket_endpoints(
 
             # Directly send message if the receiver is online
             if receiver_id in active_connections:
-                await active_connections[receiver_id].send_text(
-                    f"{sender_id}:{message}"
-                )
+                # await active_connections[receiver_id].send_text(
+                #     f"{sender_id}:{message}"
+                # )
+                for connection in active_connections[
+                     receiver_id
+                 ]:  # Send to all actived connection
+                     await connection.send_text(f"{sender_id}:{message}")
                 WS_MESSAGES_SENT.inc()
                 # ws_logger.info(f"Sent message directly to {receiver_id}")
                 print(f"[WebSocket] Directly sent message to {receiver_id}")
