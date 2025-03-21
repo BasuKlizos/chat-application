@@ -2,7 +2,7 @@ import json
 import random
 import logging
 from pymongo import MongoClient
-from locust import User, task
+from locust import User, task, between
 
 from websocket import create_connection
 
@@ -36,6 +36,8 @@ if len(user_ids) < 2:
 
 class WebSocketLocust(User):
     """Simulates WebSocket user behavior for load testing."""
+
+    wait_time = between(1, 5)
 
     def on_start(self):
         """Initialize WebSocket connection."""
