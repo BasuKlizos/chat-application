@@ -36,14 +36,6 @@ class Message:
 
         await chat_collections.insert_one(chat_data)
 
-    # @staticmethod
-    # @broker.task
-    # async def queue_message(sender_id: str, receiver_id: str, message: str):
-    #     try:
-    #         await Message.save_messaage(sender_id, receiver_id, message)
-    #     except Exception as e:
-    #         print(f"Error storing message: {e}")
-
     @staticmethod
     async def fetch_chat_history(user1_id: str, user2_id: str, redis: Redis):
         """Fetches chat history between two users, utilizing a Redis cache.
@@ -86,6 +78,7 @@ class Message:
 
         for message in serialized_chat:
             ts = message.get("timestamp")
+
             if isinstance(ts, str):
                 try:
                     ts_float = parser.parse(ts).timestamp()
@@ -128,32 +121,3 @@ class Message:
             await redis.expire(conversation_key, 86400)
         except Exception as e:
             print(f"[Redis Error] Failed to cache message: {e}")
-
-       
-        # if isinstance(ts, datetime):
-        #     message_copy["timestamp"] = ts.isoformat()
-        # elif isinstance(ts, str):
-        #     try:
-
-        #         message_copy["timestamp"] = parser.parse(ts).isoformat()
-        #     except Exception:
-
-        #         pass
-
-        # #  numeric score using the original timestamp value.
-        # if isinstance(ts, str):
-        #     try:
-        #         ts_float = parser.parse(ts).timestamp()
-        #     except Exception:
-        #         ts_float = time.time()
-        # elif isinstance(ts, datetime):
-        #     ts_float = ts.timestamp()
-        # else:
-        #     ts_float = time.time()
-
-        # await redis.zadd(conversation_key, {json.dumps(message_copy): ts_float})
-
-        # await redis.expire(conversation_key, 86400)
-
-    # @staticmethod
-    # async def make_user_offile(user_id: str): ...

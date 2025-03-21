@@ -110,5 +110,3 @@ volumes:
     driver: local
   prometheus_data:
     driver: local
-  # loki_data:
-  #   driver: local

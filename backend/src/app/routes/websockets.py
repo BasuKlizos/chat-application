@@ -24,11 +24,7 @@ from src.app.utils.metrics import (
     WS_TOTAL_CONNECTIONS,
 )
 
-# from src.app.utils.loki_config import ws_logger
-
 ws_routes = APIRouter()
-
-# active_connections: Dict[str, WebSocket] = {}
 active_connections: Dict[str, List[WebSocket]] = {}
 message_queue = asyncio.Queue()
 
@@ -70,7 +66,6 @@ async def websocket_endpoints(
     websocket: WebSocket, user_id: str, redis: Redis = Depends(get_redis_client_ws)
 ):
     await websocket.accept()
-    # active_connections[user_id] = websocket
     if user_id not in active_connections:
         active_connections[user_id] = []
     active_connections[user_id].append(websocket)
@@ -97,8 +92,6 @@ async def websocket_endpoints(
             print(f"[WebSocket] Received data: {data}")
             sender_id, receiver_id, message = data.split(":", 2)
 
-            # await Message.save_messaage(sender_id, receiver_id, message)
-            # print(f"[WebSocket] Saved message from {sender_id} to {receiver_id}")
             new_message = {
                 "sender_id": sender_id,
                 "receiver_id": receiver_id,
@@ -106,40 +99,15 @@ async def websocket_endpoints(
                 "timestamp": datetime.now(timezone.utc),
             }
 
-            # asyncio.create_task(Message.save_messaage(sender_id, receiver_id, message))
-            # print("Stored message directly in MongoDB.")
-            # WS_DB_QUERIES.inc()
-
-            # asyncio.create_task(
-            #     Message.cache_new_message(sender_id, receiver_id, new_message, redis)
-            # )
-            # REDIS_QUERIES_TOTAL.inc()
-
             await message_queue.put((sender_id, receiver_id, message))
-
-            # # Publish message
-
-            # asyncio.create_task(
-            #     redis.publish(
-            #         f"chat:{receiver_id}",
-            #         json.dumps({"sender_id": sender_id, "message": message}),
-            #     )
-            # )
-            # REDIS_QUERIES_TOTAL.inc()
-            # # ws_logger.info(f"Published message to Redis channel: chat:{receiver_id}")
-            # print(f"[WebSocket] Published message to channel: chat:{receiver_id}")
 
             # Directly send message if the receiver is online
             if receiver_id in active_connections:
-                # await active_connections[receiver_id].send_text(
-                #     f"{sender_id}:{message}"
-                # )
                 for connection in active_connections[
-                     receiver_id
-                 ]:  # Send to all actived connection
-                     await connection.send_text(f"{sender_id}:{message}")
+                    receiver_id
+                ]:  # Send to all actived connection
+                    await connection.send_text(f"{sender_id}:{message}")
                 WS_MESSAGES_SENT.inc()
-                # ws_logger.info(f"Sent message directly to {receiver_id}")
                 print(f"[WebSocket] Directly sent message to {receiver_id}")
             else:
                 asyncio.create_task(
@@ -160,32 +128,12 @@ async def websocket_endpoints(
     except Exception as e:
         print(f"WebSocket error: {e}")
     finally:
-        # subscriber_task.cancel()
-        # REDIS_QUERIES_TOTAL.inc()
-        # # del active_connections[user_id]
-
-        # if user_id in active_connections:
-        #     active_connections[user_id].remove(websocket)
-        #     if not active_connections[user_id]:
-        #         del active_connections[user_id]
-        #     # ws_logger.info(f"WebSocket DISCONNECTED: User {user_id}")
-        #     print(f"User {user_id} disconnected.")
-        #     WS_CONNECTIONS_DISC.dec()
-        #     WS_CONNECTIONS.dec()
-
-        # if user_id not in active_connections:
-        #     await user_collections.update_one(
-        #         {"_id": ObjectId(user_id)}, {"$set": {"is_online": False}}
-        #     )
-
         subscriber_task.cancel()
-
-        # await user_collections.update_one(
-        #     {"_id": ObjectId(user_id)}, {"$set": {"is_online": False}}
-        # )
 
         asyncio.create_task(mark_user_offline(user_id))
         active_connections.pop(user_id, None)
+
         print(f"User {user_id} disconnected.")
+
         WS_CONNECTIONS_DISC.dec()
         WS_CONNECTIONS.dec()

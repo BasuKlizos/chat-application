@@ -17,14 +17,7 @@ async def get_chat_history(
     This endpoint fetches chat messages from a Redis cache or the database if the cache is empty.
     """
     try:
-        # print(f"Fetching chat history for: {user1_id} <-> {user2_id}")
-
         chat_history = await Message.fetch_chat_history(user1_id, user2_id, redis)
-        # print("Successfully fetched messages from db:")
-        # task = MessageTasks.fetch_chats.delay(user1_id, user2_id)
-        # chat_history = task.get(timeout=10)
-        # print("Successfully fetched messages using Celery task:")
-        # print(chat_history)
 
         if not chat_history:
             raise HTTPException(
