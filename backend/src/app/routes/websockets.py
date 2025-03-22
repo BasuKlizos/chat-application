@@ -139,6 +139,7 @@ async def websocket_endpoints(
                     )
                 )
                 REDIS_QUERIES_TOTAL.inc()
+
                 asyncio.create_task(
                     redis.publish(
                         f"chat:{receiver_id}",
