@@ -43,45 +43,9 @@ services:
     depends_on:
       - mongodb
       - redis
-      # - loki
     networks:
       - my-networks
     restart: unless-stopped
-
-  # celery_worker:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: celery_worker
-  #   command: celery -A src.app.celery.celery_worker:celery_app worker --loglevel=info
-  #   environment:
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #   depends_on:
-  #     - backend
-  #     - redis
-  #   networks:
-  #     - my-networks
-  #   restart: unless-stopped
-
-  # flower:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: flower
-  #   command: celery -A src.app.celery.celery_worker:celery_app flower --port=5555
-  #   ports:
-  #     - "5555:5555"
-  #   environment:
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #   depends_on:
-  #     - backend
-  #     - redis
-  #     - celery_worker
-  #   networks:
-  #     - my-networks
-  #   restart: unless-stopped
 
   mongodb:
     image: mongo
@@ -125,29 +89,18 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - grafana_data:/var/lib/grafana # Persistent storage for dashboards
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
-      # - loki
     networks:
       - my-networks
     restart: unless-stopped
-
-  # loki:
-  #   image: grafana/loki:latest
-  #   container_name: loki-container
-  #   ports:
-  #     - "3100:3100"
-  #   volumes:
-  #     - loki_data:/loki  # Use a named volume instead of /var/loki
-  #     - ./loki-config.yml:/etc/loki/local-config.yml  # Loki config file
-  #   command: -config.file=/etc/loki/local-config.yml
-  #   networks:
-  #     - my-networks
-  #   restart: unless-stopped
 
 # Persistent storage
 volumes:
@@ -157,5 +110,3 @@ volumes:
     driver: local
   prometheus_data:
     driver: local
-  # loki_data:
-  #   driver: local

@@ -10,7 +10,6 @@ from src.app.routes import auth, users, chats
 from src.app.redis.conf_redis import lifespan
 from src.app.utils.metrics import HTTP_REQUESTS, CPU_USAGE, MEMORY_USAGE, DISK_USAGE
 
-# from src.app.utils.loki_config import root_logger
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -41,22 +40,13 @@ async def prometheus_middleware(request: Request, call_next):
     MEMORY_USAGE.set(psutil.virtual_memory().used / (1024 * 1024))
     DISK_USAGE.set(psutil.disk_usage("/").percent)
 
-    # root_logger.info(f"REQUEST: {request.method} {request.url}")
-
     response = await call_next(request)
-    # try:
-    #     response = await call_next(request)
-    # except Exception as e:
-    #     root_logger.error(f"ERROR: {str(e)}", exc_info=True)
-    #     raise e
 
     # Measure response time
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(
         process_time
     )  # Add response time to headers
-
-    # root_logger.info(f"RESPONSE: {response.status_code} | Time: {process_time:.4f}s")
 
     return response
 
