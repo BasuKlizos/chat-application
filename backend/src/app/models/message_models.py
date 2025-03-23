@@ -1,5 +1,6 @@
 import json
 import time
+import logging
 
 from datetime import datetime, timezone
 from redis.asyncio import Redis
@@ -7,8 +8,6 @@ from dateutil import parser
 
 from src.database import chat_collections
 from src.app.utils.serialization import Serialization
-
-# from src.app.utils.task_queue import broker
 
 
 class Message:
@@ -78,7 +77,6 @@ class Message:
 
         for message in serialized_chat:
             ts = message.get("timestamp")
-
             if isinstance(ts, str):
                 try:
                     ts_float = parser.parse(ts).timestamp()
@@ -120,4 +118,5 @@ class Message:
             await redis.zadd(conversation_key, {json.dumps(message_copy): ts_float})
             await redis.expire(conversation_key, 86400)
         except Exception as e:
-            print(f"[Redis Error] Failed to cache message: {e}")
+            # print(f"[Redis Error] Failed to cache message: {e}")
+            logging.info(f"[Redis Error] Failed to cache message: {e}")

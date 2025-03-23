@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import WebSocket, Request
 from redis.asyncio import Redis
 
@@ -22,7 +24,8 @@ def get_redis_client_ws(websocket: WebSocket) -> Redis:
     if not redis_client:
         raise RuntimeError("Redis client is not initialized!")
 
-    print("Redis client successfully retrieved.")
+    # print("Redis client successfully retrieved.")
+    logging.info("Redis client successfully retrieved.")
     return redis_client
 
 

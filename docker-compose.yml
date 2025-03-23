@@ -3,22 +3,42 @@ networks:
     driver: bridge
 
 services:
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile # Uses your custom frontend Dockerfile
+  #   container_name: frontend-services
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules # Avoids overwriting `node_modules` from the host
+  #   working_dir: /app
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - my-networks
+  #   restart: unless-stopped
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile # Uses your custom frontend Dockerfile
+      dockerfile: Dockerfile
     container_name: frontend-services
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules # Avoids overwriting `node_modules` from the host
+      # - .:/app
+      - /app/node_modules  # Prevents `node_modules` from being overwritten
     working_dir: /app
     depends_on:
       - backend
     networks:
       - my-networks
     restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - MAX_OLD_SPACE_SIZE=512  # Reduce memory usage for large builds
+
 
   backend:
     build:
@@ -29,10 +49,10 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-    # ulimits:
-    #   nofile:
-    #     soft: 65535
-    #     hard: 65535
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
     working_dir: /app
     environment:
       - MONGO_URI=mongodb://mongodb:27017
