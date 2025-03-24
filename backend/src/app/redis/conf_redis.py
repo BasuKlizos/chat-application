@@ -20,15 +20,15 @@ async def lifespan(app: FastAPI):
     Args:
         app: The FastAPI application instance.
     """
-    pool = ConnectionPool.from_url(
-        f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
-        max_connections=15000,
-        decode_responses=True,
-    )
-    app.state.redis_client = Redis(connection_pool=pool)
-    # app.state.redis_client = Redis(
-    #     host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True
+    # pool = ConnectionPool.from_url(
+    #     f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
+    #     max_connections=15000,
+    #     decode_responses=True,
     # )
+    # app.state.redis_client = Redis(connection_pool=pool)
+    app.state.redis_client = Redis(
+        host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True
+    )
     try:
         if not await app.state.redis_client.ping():
             # print("Redis is not running! Exiting application.")

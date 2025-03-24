@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO)
 ws_routes = APIRouter()
 active_connections: Dict[str, List[WebSocket]] = {}
 message_queue = asyncio.Queue()
-size_batch = 50
+size_batch = 100
 
 
 async def batch_messages_insert():
@@ -81,10 +81,10 @@ async def websocket_endpoints(
     websocket: WebSocket, user_id: str, redis: Redis = Depends(get_redis_client_ws)
 ):
     await websocket.accept()
-    # if user_id not in active_connections:
-    #     active_connections[user_id] = []
-    # active_connections[user_id].append(websocket)
-    active_connections.setdefault(user_id, []).append(websocket)
+    if user_id not in active_connections:
+        active_connections[user_id] = []
+    active_connections[user_id].append(websocket)
+    # active_connections.setdefault(user_id, []).append(websocket)
 
     WS_CONNECTIONS.inc()
     WS_TOTAL_CONNECTIONS.inc()
@@ -118,25 +118,25 @@ async def websocket_endpoints(
                 "timestamp": datetime.now(timezone.utc),
             }
 
-            # await message_queue.put((sender_id, receiver_id, message))
+            await message_queue.put((sender_id, receiver_id, message))
             # asyncio.create_task(message_queue.put((sender_id, receiver_id, message)))
-            message_queue.put_nowait((sender_id, receiver_id, message))
+            # message_queue.put_nowait((sender_id, receiver_id, message))
 
             # Directly send message if the receiver is online
-            # if receiver_id in active_connections:
-            #     for connection in active_connections[
-            #         receiver_id
-            #     ]:  # Send to all actived connection
-            #         await connection.send_text(f"{sender_id}:{message}")
-            #     WS_MESSAGES_SENT.inc()
-            #     # print(f"[WebSocket] Directly sent message to {receiver_id}")
-            #     logging.info(f"[WebSocket] Directly sent message to {receiver_id}")
-            connections = active_connections.get(receiver_id)
-            if connections:
-                for connection in connections:
+            if receiver_id in active_connections:
+                for connection in active_connections[
+                    receiver_id
+                ]:  # Send to all actived connection
                     await connection.send_text(f"{sender_id}:{message}")
                 WS_MESSAGES_SENT.inc()
-                logging.info(f"[WebSocket] Directly Sent message to {receiver_id}")
+                # print(f"[WebSocket] Directly sent message to {receiver_id}")
+                logging.info(f"[WebSocket] Directly sent message to {receiver_id}")
+            # connections = active_connections.get(receiver_id)
+            # if connections:
+            #     for connection in connections:
+            #         await connection.send_text(f"{sender_id}:{message}")
+            #     WS_MESSAGES_SENT.inc()
+            #     logging.info(f"[WebSocket] Directly Sent message to {receiver_id}")
             
             else:
                 asyncio.create_task(
@@ -170,9 +170,9 @@ async def websocket_endpoints(
     finally:
         subscriber_task.cancel()
 
-        # asyncio.create_task(mark_user_offline(user_id))
-        # active_connections.pop(user_id, None)
-        asyncio.create_task(asyncio.to_thread(active_connections.pop, user_id, None))
+        asyncio.create_task(mark_user_offline(user_id))
+        active_connections.pop(user_id, None)
+        # asyncio.create_task(asyncio.to_thread(active_connections.pop, user_id, None))
         # await asyncio.gather(
         #     mark_user_offline(user_id),
         #     asyncio.to_thread(active_connections.pop, user_id, None),
